@@ -1,0 +1,42 @@
+{
+  "has_version_claim": {
+    "type": "noul",
+    "instructions": "Does this paragraph assert a specific software version, release number, or 'requires vX.Y' dependency? Flag the claim only — do not verify whether the version is correct.",
+    "criteria": {
+      "true": "A specific version or release number is asserted",
+      "false": "No specific version claim worth flagging"
+    }
+  },
+  "has_price_claim": {
+    "type": "noul",
+    "instructions": "Does this paragraph assert a specific price, fee, subscription cost, or monetary amount? Flag the claim only — do not verify current pricing.",
+    "criteria": {
+      "true": "A specific price or monetary amount is asserted",
+      "false": "No specific price claim worth flagging"
+    }
+  },
+  "has_api_surface_claim": {
+    "type": "noul",
+    "instructions": "Does this paragraph describe specific API endpoints, methods, parameters, or response fields by name? Flag the claim only — do not verify against live API docs.",
+    "criteria": {
+      "true": "Specific API surface details are asserted",
+      "false": "No specific API surface claim worth flagging"
+    }
+  },
+  "has_feature_availability_claim": {
+    "type": "noul",
+    "instructions": "Does this paragraph assert that a named product feature exists, is GA, or is available in a specific plan or region? Flag only — do not verify availability.",
+    "criteria": {
+      "true": "A specific feature availability claim is asserted",
+      "false": "No feature availability claim worth flagging"
+    }
+  },
+  "has_limit_or_quota_claim": {
+    "type": "noul",
+    "instructions": "Does this paragraph assert a specific numeric limit, quota, rate cap, or SLA number? Flag only — do not verify the number.",
+    "criteria": {
+      "true": "A specific limit or quota is asserted",
+      "false": "No limit or quota claim worth flagging"
+    }
+  }
+}
