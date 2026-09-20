@@ -11,22 +11,23 @@ A **skill tree** of [TypeSafe Jev](https://typesafe.ai/) agent skills over HTTP.
 3. **Set `JEV_API_KEY`** — exact name, case-sensitive.
 4. **Prompt your agent** — e.g. *"Run umby-jev-review on this repo. Use frozen questions. Compile every finding."*
 
-## Skill tree (10 skills)
+## Skill tree (11 skills)
 
 | # | Skill | Use when |
 | --- | --- | --- |
-| 1 | [`umby-jev-review`](skills/umby-jev-review/) | Full repo review — six independent Nouls, executable defects only (v2.0) |
+| 1 | [`umby-jev-review`](skills/umby-jev-review/) | Full repo review — six independent Nouls, executable defects only (v2.0.2) |
 | 2 | [`umby-jev-diff-gate`](skills/umby-jev-diff-gate/) | Same hunts on git diff / PR patch only |
 | 3 | [`umby-jev-secrets`](skills/umby-jev-secrets/) | Stricter secret + PII sweep |
 | 4 | [`umby-jev-breaking-change`](skills/umby-jev-breaking-change/) | API / schema / export breaks |
 | 5 | [`umby-jev-test-gap`](skills/umby-jev-test-gap/) | Behavior change without tests |
 | 6 | [`umby-jev-agent-safety`](skills/umby-jev-agent-safety/) | Destructive command risk before run |
 | 7 | [`umby-jev-prompt-screen`](skills/umby-jev-prompt-screen/) | Jailbreak / injection in user text |
-| 8 | [`umby-jev-issue-triage`](skills/umby-jev-issue-triage/) | Issue type + urgency (independent) |
+| 8 | [`umby-jev-issue-triage`](skills/umby-jev-issue-triage/) | Issue type + urgency + independent security Noul |
 | 9 | [`umby-jev-docs-drift`](skills/umby-jev-docs-drift/) | Docs claims to verify later |
-| 10 | [`umby-jev-browser`](skills/umby-jev-browser/) | Jev-driven browser loop — Playwright/a11y driver, error Nouls + next_action |
+| 10 | [`umby-jev-browser`](skills/umby-jev-browser/) | Browser Harness/Chrome — indexed operation/target heads + independent error Nouls |
+| 11 | [`Speedy Jev`](skills/umby-jev-speedy/) | Incremental clutter/performance candidates; ≥ 0.70 list; look-only proposals |
 
-See [`TREE.md`](TREE.md) for install details and how to add skill 11+.
+See [`TREE.md`](TREE.md) for install details and how to add skill 12+.
 
 ## Install
 
@@ -59,10 +60,20 @@ Verify: `test -n "$JEV_API_KEY" && echo ok` — **do not commit keys.**
 - **HTTP-first** — `POST https://api.typesafe.ai/v1/systemone`, model `jev-latest`
 - **Independent Nouls** (or separate Choice + Score where documented) — every positive flag gets a compile row
 - **Never** a single highest-priority Choice that hides co-occurring hits
-- Jev classifies only; **you review** before fixes
+- Jev classifies only; confirm/compile agents are look-only and explain possible remedies without editing application code. A human reviews and decides.
 
 [jev-review MCP](https://github.com/NiazMorshed2007/jev-review) is optional — not required.
 
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
+## Tree 1.6.0
+
+- Speedy Jev 1.0.0 adds a local candidate index (path/hash/kind/last-seen), incremental scoring, and four independent Nouls. Only Speedy lists scores ≥ 0.70.
+- Browser 2.0.0 follows jev-ultrafast: operation plus compatible speculative target heads in one request; text helper only for TYPE_TEXT; every error Noul ≥ 0.5 and click/type path are compiled.
+- Diff-gate 2.0.0 ports review v2 structured hunts and ignore lists, scoped strictly to diff/PR changes.
+- Review 2.0.2 clarifies look-only confirmation and the oversized-function chunk cap; Fable's six questions remain byte-for-byte unchanged. `state.content` ≤ 10,000 characters, repo-sized keep-alive HTTPS pool (concurrency = snippets), retry/backoff only as needed, and compile ≥ 0.5 remain intact.
+- Siblings use structured instructions/criteria and explicit evidence boundaries. Issue-triage 2.0.0 corrects Score criteria to an ordered array and retains security independently of category.
+
+All skills use `POST https://api.typesafe.ai/v1/systemone`, model `jev-latest`, and `JEV_API_KEY` (SDK examples may use `TYPESAFE_API_KEY`). No application fixes or automatic cleanup. MIT; owner Billy Lewis / Umbylicus.

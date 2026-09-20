@@ -1,42 +1,112 @@
 {
   "has_version_claim": {
     "type": "noul",
-    "instructions": "Does this paragraph assert a specific software version, release number, or 'requires vX.Y' dependency? Flag the claim only — do not verify whether the version is correct.",
+    "instructions": {
+      "question": "Does this paragraph assert a specific software version, release number, or 'requires vX.Y' dependency? Flag the claim only — do not verify whether the version is correct.",
+      "inspect": "content and supplied context",
+      "context": "Detect assertions only; do not verify truth, freshness or current versions. Include code examples that claim actual API usage.",
+      "focus": "Require concrete evidence for this question independently; do not infer it from another answer.",
+      "ignore": [
+        "Clearly hypothetical values",
+        "Questions rather than assertions",
+        "Unrelated numbers without a product claim"
+      ]
+    },
     "criteria": {
-      "true": "A specific version or release number is asserted",
-      "false": "No specific version claim worth flagging"
+      "true": {
+        "what": "A specific version or release number is asserted"
+      },
+      "false": {
+        "what": "No specific version claim worth flagging"
+      }
     }
   },
   "has_price_claim": {
     "type": "noul",
-    "instructions": "Does this paragraph assert a specific price, fee, subscription cost, or monetary amount? Flag the claim only — do not verify current pricing.",
+    "instructions": {
+      "question": "Does this paragraph assert a specific price, fee, subscription cost, or monetary amount? Flag the claim only — do not verify current pricing.",
+      "inspect": "content and supplied context",
+      "context": "Detect assertions only; do not verify truth, freshness or current versions. Include code examples that claim actual API usage.",
+      "focus": "Require concrete evidence for this question independently; do not infer it from another answer.",
+      "ignore": [
+        "Clearly hypothetical values",
+        "Questions rather than assertions",
+        "Unrelated numbers without a product claim"
+      ]
+    },
     "criteria": {
-      "true": "A specific price or monetary amount is asserted",
-      "false": "No specific price claim worth flagging"
+      "true": {
+        "what": "A specific price or monetary amount is asserted"
+      },
+      "false": {
+        "what": "No specific price claim worth flagging"
+      }
     }
   },
   "has_api_surface_claim": {
     "type": "noul",
-    "instructions": "Does this paragraph describe specific API endpoints, methods, parameters, or response fields by name? Flag the claim only — do not verify against live API docs.",
+    "instructions": {
+      "question": "Does this paragraph describe specific API endpoints, methods, parameters, or response fields by name? Flag the claim only — do not verify against live API docs.",
+      "inspect": "content and supplied context",
+      "context": "Detect assertions only; do not verify truth, freshness or current versions. Include code examples that claim actual API usage.",
+      "focus": "Require concrete evidence for this question independently; do not infer it from another answer.",
+      "ignore": [
+        "Clearly hypothetical values",
+        "Questions rather than assertions",
+        "Unrelated numbers without a product claim"
+      ]
+    },
     "criteria": {
-      "true": "Specific API surface details are asserted",
-      "false": "No specific API surface claim worth flagging"
+      "true": {
+        "what": "Specific API surface details are asserted"
+      },
+      "false": {
+        "what": "No specific API surface claim worth flagging"
+      }
     }
   },
   "has_feature_availability_claim": {
     "type": "noul",
-    "instructions": "Does this paragraph assert that a named product feature exists, is GA, or is available in a specific plan or region? Flag only — do not verify availability.",
+    "instructions": {
+      "question": "Does this paragraph assert that a named product feature exists, is GA, or is available in a specific plan or region? Flag only — do not verify availability.",
+      "inspect": "content and supplied context",
+      "context": "Detect assertions only; do not verify truth, freshness or current versions. Include code examples that claim actual API usage.",
+      "focus": "Require concrete evidence for this question independently; do not infer it from another answer.",
+      "ignore": [
+        "Clearly hypothetical values",
+        "Questions rather than assertions",
+        "Unrelated numbers without a product claim"
+      ]
+    },
     "criteria": {
-      "true": "A specific feature availability claim is asserted",
-      "false": "No feature availability claim worth flagging"
+      "true": {
+        "what": "A specific feature availability claim is asserted"
+      },
+      "false": {
+        "what": "No feature availability claim worth flagging"
+      }
     }
   },
   "has_limit_or_quota_claim": {
     "type": "noul",
-    "instructions": "Does this paragraph assert a specific numeric limit, quota, rate cap, or SLA number? Flag only — do not verify the number.",
+    "instructions": {
+      "question": "Does this paragraph assert a specific numeric limit, quota, rate cap, or SLA number? Flag only — do not verify the number.",
+      "inspect": "content and supplied context",
+      "context": "Detect assertions only; do not verify truth, freshness or current versions. Include code examples that claim actual API usage.",
+      "focus": "Require concrete evidence for this question independently; do not infer it from another answer.",
+      "ignore": [
+        "Clearly hypothetical values",
+        "Questions rather than assertions",
+        "Unrelated numbers without a product claim"
+      ]
+    },
     "criteria": {
-      "true": "A specific limit or quota is asserted",
-      "false": "No limit or quota claim worth flagging"
+      "true": {
+        "what": "A specific limit or quota is asserted"
+      },
+      "false": {
+        "what": "No limit or quota claim worth flagging"
+      }
     }
   }
 }

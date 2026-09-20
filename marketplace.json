@@ -7,68 +7,74 @@
     {
       "name": "umby-jev-stack",
       "description": "Umby Jev skill tree — all skills (install the whole tree)",
-      "version": "1.5.1",
+      "version": "1.6.0",
       "source": "./"
     },
     {
       "name": "umby-jev-review",
       "description": "Skill 1: full Jev code review — six independent Nouls, executable defects only, path/kind/chunk context in state",
-      "version": "2.0.1",
+      "version": "2.0.2",
       "source": "./skills/umby-jev-review"
     },
     {
       "name": "umby-jev-diff-gate",
       "description": "Skill 2: same hunt Nouls on git diff / PR patch only",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "source": "./skills/umby-jev-diff-gate"
     },
     {
       "name": "umby-jev-secrets",
       "description": "Skill 3: stricter secret and PII sweep",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "source": "./skills/umby-jev-secrets"
     },
     {
       "name": "umby-jev-breaking-change",
       "description": "Skill 4: API, schema, and export contract breaks",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "source": "./skills/umby-jev-breaking-change"
     },
     {
       "name": "umby-jev-test-gap",
       "description": "Skill 5: behavior change without adequate tests",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "source": "./skills/umby-jev-test-gap"
     },
     {
       "name": "umby-jev-agent-safety",
       "description": "Skill 6: destructive tool-call / command risk before execution",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "source": "./skills/umby-jev-agent-safety"
     },
     {
       "name": "umby-jev-prompt-screen",
       "description": "Skill 7: jailbreak, secret-in-prompt, injection in user/issue text",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "source": "./skills/umby-jev-prompt-screen"
     },
     {
       "name": "umby-jev-issue-triage",
-      "description": "Skill 8: issue type Choice + urgency Score",
-      "version": "1.0.0",
+      "description": "Skill 8: category Choice, valid urgency Score and independent security Noul",
+      "version": "2.0.0",
       "source": "./skills/umby-jev-issue-triage"
     },
     {
       "name": "umby-jev-docs-drift",
       "description": "Skill 9: docs claims (version, price, API) for later LLM verify",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "source": "./skills/umby-jev-docs-drift"
     },
     {
       "name": "umby-jev-browser",
-      "description": "Skill 10: Jev-driven browser loop — thin driver, independent error Nouls, Choice next_action",
-      "version": "1.0.0",
+      "description": "Skill 10: Browser Harness/Chrome — dynamic operation/target heads and independent error Nouls",
+      "version": "2.0.0",
       "source": "./skills/umby-jev-browser"
+    },
+    {
+      "name": "umby-jev-speedy",
+      "description": "Skill 11: Speedy Jev — incremental clutter/performance candidates, ≥ 0.70 list, look-only cleanup proposals",
+      "version": "1.0.0",
+      "source": "./skills/umby-jev-speedy"
     }
   ]
 }

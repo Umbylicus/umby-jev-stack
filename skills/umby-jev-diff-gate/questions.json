@@ -1,50 +1,239 @@
 {
   "has_syntax_or_type_error": {
     "type": "noul",
-    "instructions": "In this diff or patch hunk, does an added or changed line introduce a syntax, parse, or type error; missing import; or invalid reference?",
+    "instructions": {
+      "question": "Would the code in `content` fail to parse, compile, or typecheck because of a defect that is visible in this snippet?",
+      "inspect": "content",
+      "context": "`path` and `language` identify the file type. If `chunk` is present, `content` is a partial slice of a longer file: imports, declarations, and closing braces may live outside the slice, and `imports` carries the file's real import block. Here content is a unified diff: + lines are additions, - lines are the baseline, and unprefixed context explains the change. Report defects introduced or exposed by changed lines; never treat diff markers or removed code as current executable code.",
+      "focus": "A concrete broken token, statement, or type usage you can point to on a specific line.",
+      "ignore": [
+        "Anything inside comments, JSDoc, block-comment headers, or Markdown prose",
+        "Anything inside string or template literals, including HTML, SQL, or JSON written as strings",
+        "Identifiers that could be imported, declared, or global outside the visible slice",
+        "Explicit casts such as `as unknown as string`, especially when a nearby comment explains them",
+        "Style, formatting, and lint preferences",
+        "Defects confined to removed lines or unrelated unchanged context",
+        "Diff markers and hunk boundaries that are not source syntax"
+      ]
+    },
     "criteria": {
-      "true": "A syntax, parse, or type error is introduced in the diff",
-      "false": "No syntax or type error worth flagging in the diff"
+      "true": {
+        "what": "The code as written cannot compile or typecheck: unbalanced brackets, a malformed statement, wrong argument count against a signature declared in this snippet, an incompatible literal assigned to an explicitly typed binding, or a symbol that this same snippet proves is undefined",
+        "examples": [
+          "const count: number = \"five\";",
+          "if (a > b { return a; }",
+          "function pick(n: number) {} … pick(1, 2, 3)  (signature and call both in the snippet)",
+          "return await items.map(async x => x.id)).filter(Boolean);  (extra closing paren)"
+        ]
+      },
+      "false": {
+        "what": "The code parses and typechecks, anything odd sits inside a comment, string, or template, or the referenced symbol may be defined outside this slice",
+        "examples": [
+          "/** CONVERT (ADR-168): prose describing the module */",
+          "el.innerHTML = '<button class=\"save\">Save</button>' + esc(name);",
+          "a chunk that calls helper() declared in another chunk of the same file",
+          "(input as unknown as string)  // DOM value coercion, see comment above"
+        ]
+      }
     }
   },
   "has_exposed_secret": {
     "type": "noul",
-    "instructions": "In this diff or patch hunk, does an added or changed line expose a hardcoded secret, API key, token, password, or credential?",
+    "instructions": {
+      "question": "Does `content` contain a literal credential value that would grant access if it were copied out of the repository?",
+      "inspect": "content",
+      "context": "`path` and `kind` tell you whether this is application source, a test, a fixture, a migration, a config file, or an env example. Dummy values are expected in tests, fixtures, and env examples. Here content is a unified diff: + lines are additions, - lines are the baseline, and unprefixed context explains the change. Report defects introduced or exposed by changed lines; never treat diff markers or removed code as current executable code.",
+      "focus": "Judge the literal value, not the variable name. Ask: if this exact string leaked, could someone use it? A hardcoded access or share token counts even when the code calls it public or shareable; the human reviewer decides that policy.",
+      "ignore": [
+        "Reads from process.env, platform bindings, secret managers, or config lookups",
+        "Placeholders and dummies: xxx, ..., changeme, REPLACE_ME, example, dummy, your-key-here, all zeros",
+        "Publishable or public identifiers: publishable keys, OAuth client IDs, public URLs, app IDs",
+        "Values inside `kind: test` or `kind: fixture` files, or under a test/ or __tests__/ directory",
+        "Names of environment variables, documentation about keys, and comments",
+        "Defects confined to removed lines or unrelated unchanged context",
+        "Diff markers and hunk boundaries that are not source syntax"
+      ]
+    },
     "criteria": {
-      "true": "A hardcoded secret or exposed credential is added in the diff",
-      "false": "No exposed secret worth flagging in the diff"
+      "true": {
+        "what": "A literal string that functions as a credential or capability token is present in non-test code: a live-looking API key body, a password inside a connection string, a private key block, a signing secret, or a hardcoded access or share token used to authorize a request",
+        "examples": [
+          "const STRIPE_SECRET = \"sk_live_51Hh…\"  (a realistic key body, not xxx)",
+          "postgres://app:S3cretPassw0rd@db.internal:5432/crm",
+          "-----BEGIN PRIVATE KEY-----",
+          "const WALKTHROUGH_SHARE_TOKEN = \"9f1c…32 hex chars\"  used to grant access to a booking resource"
+        ]
+      },
+      "false": {
+        "what": "No usable literal credential: the value is read from the environment, is an obvious placeholder, is a public identifier, or lives in a test, fixture, or env example",
+        "examples": [
+          "const key = process.env.STRIPE_SECRET_KEY",
+          "STRIPE_SECRET_KEY=sk_test_xxx  in .env.example",
+          "publishableKey: \"pk_live_…\"",
+          "token: \"test-token\"  in apps/crm/test/fixtures.ts",
+          "// rotate the API key monthly"
+        ]
+      }
     }
   },
   "has_injection_or_xss": {
     "type": "noul",
-    "instructions": "In this diff or patch hunk, does an added or changed line introduce injection risk (SQL, shell, template, command) or XSS / unsafe output?",
+    "instructions": {
+      "question": "Does `content` build a SQL query, shell command, template, redirect, or HTML/JS output from untrusted input without the parameterization or escaping that sink requires?",
+      "inspect": "content",
+      "context": "Untrusted input means request bodies, query strings, headers, cookies, URL parts, user profile fields, or database rows that came from users. `kind: test` and `kind: migration` files rarely contain a real sink. Here content is a unified diff: + lines are additions, - lines are the baseline, and unprefixed context explains the change. Report defects introduced or exposed by changed lines; never treat diff markers or removed code as current executable code.",
+      "focus": "Trace the value from its source to the sink. Flag only when an untrusted value reaches the sink raw, with no parameter binding and no escaping call between them.",
+      "ignore": [
+        "Parameterized or prepared SQL: $1, ?, :name placeholders, tagged sql`` templates that bind values, ORM and query-builder calls with bound arguments",
+        "Values wrapped in an escaping or sanitizing call before the sink: esc(), escapeHtml(), encodeURIComponent(), textContent, DOMPurify, a templating engine that auto-escapes",
+        "innerHTML or document.write assigned from constant strings, or from markup whose dynamic parts are all wrapped in esc()",
+        "SQL migration files and DDL with no interpolation",
+        "Tests, comments, and prose that mention SQL or HTML",
+        "Defects confined to removed lines or unrelated unchanged context",
+        "Diff markers and hunk boundaries that are not source syntax"
+      ]
+    },
     "criteria": {
-      "true": "An injection or XSS risk is introduced in the diff",
-      "false": "No injection or XSS risk worth flagging in the diff"
+      "true": {
+        "what": "An untrusted value is concatenated or interpolated directly into a query, command, eval, redirect target, or HTML/JS sink without binding or escaping",
+        "examples": [
+          "db.query(`SELECT * FROM users WHERE email = '${req.body.email}'`)",
+          "exec('convert ' + req.query.file)",
+          "el.innerHTML = user.bio",
+          "res.redirect(req.query.next)  with no allowlist",
+          "new Function(req.body.expr)"
+        ]
+      },
+      "false": {
+        "what": "Every untrusted value is bound as a parameter or escaped before the sink, or the sink only receives constants",
+        "examples": [
+          "db.query('SELECT * FROM users WHERE email = $1', [email])",
+          "row.innerHTML = '<td>' + esc(lead.name) + '</td>'",
+          "bar.innerHTML = '<button>Restore draft</button><button>Discard draft</button>'",
+          "CREATE TABLE leads (id text primary key, email text)  in a .sql migration",
+          "sql`INSERT INTO t (a) VALUES (${a})`  where sql is a parameterizing tag"
+        ]
+      }
     }
   },
   "has_insecure_auth": {
     "type": "noul",
-    "instructions": "In this diff or patch hunk, does an added or changed line weaken authentication or authorization?",
+    "instructions": {
+      "question": "Does `content` itself show an authentication or authorization check that is wrong, bypassable, or missing where this same snippet proves one is required?",
+      "inspect": "content",
+      "context": "Only server-side code can enforce auth. Browser or client code (`path` under client/, public/, or a UI chunk) shows UI gating, not security. Route protection often lives in router-level middleware outside the snippet. Here content is a unified diff: + lines are additions, - lines are the baseline, and unprefixed context explains the change. Report defects introduced or exposed by changed lines; never treat diff markers or removed code as current executable code.",
+      "focus": "A privileged read or write where the defect is visible: a check that can be skipped, a token trusted without verification, an inverted or absent role or ownership comparison while sibling handlers in the same snippet do compare.",
+      "ignore": [
+        "Handlers with no visible check when the protection may live in middleware outside the slice",
+        "Client or browser UI code",
+        "Public-by-design routes: login, signup, password reset request, health checks, webhooks that verify a signature",
+        "Tests and fixtures with stubbed sessions",
+        "Comments describing the auth model",
+        "Defects confined to removed lines or unrelated unchanged context",
+        "Diff markers and hunk boundaries that are not source syntax"
+      ]
+    },
     "criteria": {
-      "true": "An auth or authorization flaw is introduced in the diff",
-      "false": "No auth flaw worth flagging in the diff"
+      "true": {
+        "what": "Server code performs a privileged operation with a check that is demonstrably wrong: bypass condition, unverified token trusted, weak or inverted comparison, ownership check absent while neighbours in the same snippet have one, or a session or role set from user-supplied input",
+        "examples": [
+          "if (user || process.env.NODE_ENV !== 'production') { return handler(req) }",
+          "const claims = jwt.decode(token); if (claims.role === 'admin') …  (decode, never verify)",
+          "if (!isOwner) { allow() } else { deny() }  (branches inverted relative to their contents)",
+          "router.delete('/companies/:id') deletes by :id while router.get('/companies/:id') in the same file first checks session.company_id",
+          "session.user_id = req.body.user_id"
+        ]
+      },
+      "false": {
+        "what": "No visible auth defect: the check is correct, protection may live outside the slice, the route is public by design, or the code is client-side or test code",
+        "examples": [
+          "a route handler with no check, mounted under requireAuth in another file",
+          "if (!currentUser) showLoginModal()  in client/js/app.js",
+          "POST /webhooks/stripe that calls stripe.webhooks.constructEvent(sig)",
+          "// auth is enforced in middleware/require-session.ts"
+        ]
+      }
     }
   },
   "has_schema_mismatch": {
     "type": "noul",
-    "instructions": "In this diff or patch hunk, does an added or changed line break an API or schema contract?",
+    "instructions": {
+      "question": "Does `content` use a field name, key set, or value type that contradicts a schema, interface, type, column list, or API contract that is also visible in this snippet?",
+      "inspect": "content",
+      "context": "If the declaration lives in another file or another chunk, you cannot verify a mismatch from this slice. `kind: migration` files intentionally change schemas. Here content is a unified diff: + lines are additions, - lines are the baseline, and unprefixed context explains the change. Report defects introduced or exposed by changed lines; never treat diff markers or removed code as current executable code.",
+      "focus": "Both sides must be visible: the declaration and the usage that disagrees with it.",
+      "ignore": [
+        "Usage whose schema is defined outside this slice",
+        "Optional fields that are omitted",
+        "Values typed any or unknown, or objects with an index signature",
+        "Renames handled by a visible mapper or adapter",
+        "Migrations that add, drop, or rename columns on purpose",
+        "Defects confined to removed lines or unrelated unchanged context",
+        "Diff markers and hunk boundaries that are not source syntax"
+      ]
+    },
     "criteria": {
-      "true": "A schema or API contract break is introduced in the diff",
-      "false": "No schema mismatch worth flagging in the diff"
+      "true": {
+        "what": "A visible declaration and a visible usage disagree on field name, required keys, arity, or type",
+        "examples": [
+          "interface Lead { email: string } … lead.emial",
+          "z.object({ amount: z.number() }).parse({ amount: '10' })  (literal string where number is declared)",
+          "INSERT INTO leads (name, email) VALUES ($1, $2, $3)",
+          "type Resp = { items: Item[] } … const r: Resp = await res.json(); r.results.map(…)"
+        ]
+      },
+      "false": {
+        "what": "No contradiction is visible within the snippet, or the difference is intentional and handled",
+        "examples": [
+          "res.json({ ok: true })  where the client type is declared elsewhere",
+          "ALTER TABLE leads ADD COLUMN source text  in a migration",
+          "obj.extra  when the interface allows [key: string]: unknown",
+          "toApi(lead)  mapper that renames snake_case to camelCase"
+        ]
+      }
     }
   },
   "has_logic_bug": {
     "type": "noul",
-    "instructions": "In this diff or patch hunk, does an added or changed line introduce a logic bug (wrong condition, off-by-one, race, null mishandling)?",
+    "instructions": {
+      "question": "Is there a specific executable statement in `content` that will produce a wrong result, crash, or corrupt data on a realistic input, such that you could name the line and the failing input?",
+      "inspect": "content",
+      "context": "Certainty over suspicion. Code that merely looks unusual, or that you would write differently, is not a bug. If the answer depends on code outside the slice, answer no. Here content is a unified diff: + lines are additions, - lines are the baseline, and unprefixed context explains the change. Report defects introduced or exposed by changed lines; never treat diff markers or removed code as current executable code.",
+      "focus": "The exact statement and the exact input that breaks it: wrong operator, inverted or swapped branch, off-by-one on a visible bound, assignment in a condition, missing await on a Promise whose result is used, null dereference where the snippet shows the value can be null, unreachable branch, wrong unit or 0-based vs 1-based mix-up.",
+      "ignore": [
+        "Comments, section headers, JSDoc, and prose",
+        "Defensive guards, early returns, and stale-response guards",
+        "Deliberately empty catch blocks around non-critical calls, especially with an explaining comment",
+        "Choices explained by an adjacent comment or an ADR reference",
+        "Style, naming, duplication, performance, missing features, TODOs",
+        "Behaviour that cannot be determined from the visible slice",
+        "Defects confined to removed lines or unrelated unchanged context",
+        "Diff markers and hunk boundaries that are not source syntax"
+      ]
+    },
     "criteria": {
-      "true": "A plausible logic defect is introduced in the diff",
-      "false": "No logic defect worth flagging in the diff"
+      "true": {
+        "what": "A named statement demonstrably misbehaves on a realistic input: it throws, returns the wrong value, or writes wrong data",
+        "examples": [
+          "for (let i = 0; i <= items.length; i++) total += items[i].price  (reads past the end)",
+          "if (status = 'paid') { … }  (assignment in condition)",
+          "const rows = db.query(sql); return rows.length  (Promise has no length, await missing)",
+          "const avg = sum / items.length  right after a guard that allows items to be empty",
+          "`${date.getMonth()}/${date.getDate()}`  used as a 1-based calendar month",
+          "if (!isAdmin) { deleteAll() } else { showReadOnly() }  (branches swapped relative to their bodies)"
+        ]
+      },
+      "false": {
+        "what": "Behaviour is correct, defensive, intentional, stylistic, or not determinable from the slice",
+        "examples": [
+          "try { await markRead(id) } catch {}  // non-critical badge refresh",
+          "if (!calendar_id) return toast('Pick a calendar first')",
+          "if (renderGuard.isStale(token)) return;",
+          "// ---- Cold calling ---- section comment",
+          "if (umbyPhoneOn()) renderMobileCards(rows) else renderTable(rows)",
+          "code that would read better refactored but computes the same result"
+        ]
+      }
     }
   }
 }

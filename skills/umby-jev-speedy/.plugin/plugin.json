@@ -1,8 +1,8 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
-  "name": "umby-jev-review",
-  "version": "2.0.2",
-  "description": "Full Jev code review — six independent Nouls, executable defects only, path/kind/chunk context in state",
+  "name": "umby-jev-speedy",
+  "version": "1.0.0",
+  "description": "Speedy Jev — incremental clutter/performance candidates; four independent Nouls; list only ≥ 0.70; look-only proposals",
   "author": {
     "name": "Umby",
     "url": "https://github.com/Umbylicus"

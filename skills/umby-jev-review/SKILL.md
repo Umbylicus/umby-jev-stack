@@ -9,11 +9,11 @@ description: >-
   values. State carries path, kind, language, chunk range, and imports so Jev knows what
   it is looking at. Frozen compile labels: Clean_Codebase, Syntax_Or_Type_Error,
   Vulnerability_Flagged, Schema_Mismatch, Logic_Bug. Never pick one winner; never drop a
-  finding; fix only after user reviews. Requires JEV_API_KEY.
+  finding; look-only confirmation and proposals; human decides follow-up. Requires JEV_API_KEY.
 license: MIT
 metadata:
   author: umby
-  version: "2.0.1"
+  version: "2.0.2"
   homepage: https://github.com/Umbylicus/umby-jev-stack
   source: https://github.com/Umbylicus/umby-jev-stack/tree/main/skills/umby-jev-review
   openclaw:
@@ -29,7 +29,7 @@ metadata:
 
 # Umby Jev Review (skill 1)
 
-Part of the [Umby Jev Stack](https://github.com/Umbylicus/umby-jev-stack) skill tree. Run **TypeSafe Jev** as a cheap classifier — not a chat model. One `POST` per file or coherent chunk; **six independent Noul questions per hunt** so every issue can fire on the same snippet; compile **every** positive flag; **never drop a finding**. Jev classifies; **you** confirm and propose fixes **only after the user reviews** the compiled report.
+Part of the [Umby Jev Stack](https://github.com/Umbylicus/umby-jev-stack) skill tree. Run **TypeSafe Jev** as a cheap classifier — not a chat model. One `POST` per file or coherent chunk; **six independent Noul questions per hunt** so every issue can fire on the same snippet; compile **every** positive flag; **never drop a finding**. Jev classifies; **you** confirm and explain possible fixes in the compile. Confirm/compile agents are look-only and must not edit application code. A human reviews the full compiled list and decides.
 
 Works with `curl`, `fetch`, Node, or Python. No Cursor-only tools required.
 
@@ -156,7 +156,7 @@ Send an object, not a bare string. The questions reference these keys by name.
 Jev makes gut-check judgments; oversized slabs were the strongest predictor of 1.x false positives. Size every snippet by **characters**, not line count.
 
 1. **Whole file** when `content` ≤ **10,000 characters** (omit `chunk`).
-2. Otherwise split at **top-level boundaries** (blank line between functions, classes, route registrations, SQL statements) into the fewest chunks where each `content` ≤ **10,000 characters**. Never split inside a function if you can avoid it; if a single function exceeds the cap, it is its own chunk (hard-split the text if one line alone exceeds 10k).
+2. Otherwise split at **top-level boundaries** (blank line between functions, classes, route registrations, SQL statements) into the fewest chunks where each `content` ≤ **10,000 characters**. Never split inside a function if you can avoid it; if a single function exceeds the cap, split it into partial slices each ≤ 10,000 characters, retaining function context (hard-split even a single line if needed).
 3. Every chunk gets the same `imports` block and its own `chunk` range. Line numbers are 1-based and refer to the original file.
 4. Never overlap chunks (overlap duplicates rows). Never drop a chunk on `max_tokens_exceeded` — split it further and re-run.
 
@@ -212,7 +212,7 @@ Optional reference runner (Project store): `internal/jev-full-scan-runner-v2.mjs
 ### 3. Parallel Jev calls
 
 - One request per snippet (whole file or chunk).
-- Launch all `N` calls per [step 2](#2-size-the-https-pool-from-the-repo-always); work **one file at a time** when applying fixes later.
+- Launch all `N` calls per [step 2](#2-size-the-https-pool-from-the-repo-always).
 - On `max_tokens_exceeded`, split the chunk and re-run; **do not skip**.
 - Persist raw responses (JSONL of `path`, `chunk`, `answers`, `model`) so the compile pass can be re-run without new Jev calls.
 
@@ -252,15 +252,15 @@ This costs two extra calls per hit and turns most 0.5–0.7 flags into either a 
 - Show the compiled table sorted by tier then path, and a short per-finding note: path, label, question key, quoted evidence.
 - State the totals: snippets sent, clean, flagged, rows by tier.
 - **Do not hallucinate fixes inside Jev calls.** Jev only classifies.
-- **Do not edit code** until the user has reviewed the compiled findings.
+- **Do not edit application code.** This skill produces only the compile and look-only confirmation.
 
-### 6. After user review — confirm pass
+### 6. Look-only confirm pass
 
 - Re-read every flagged snippet yourself, tier A first; confirm or reject each row with a one-line reason.
 - Reject reasons that are always valid (these were 543 of 544 rows in the 1.x sweep): the cited line is a comment, header, or prose; the value is a placeholder or read from env; the file is a test or fixture (`kind`); the HTML is constant or every dynamic part is wrapped in `esc()`; the SQL is parameterized or a migration; the "missing" symbol is imported or declared elsewhere in the file; the behaviour is an intentional guard explained by a comment or ADR; the auth check lives in router middleware.
 - A hardcoded access or share token is **not** auto-rejected because the code calls it public — mark it `needs human (policy)` and let the user decide.
-- Apply fixes only for findings the user approves (one file at a time).
-- Re-run Jev on changed files if the user wants verification.
+- Explain how confirmed findings could be fixed in the compile; do not apply fixes. A human reviews the complete list and decides on a separate implementation task.
+- No changes or automatic verification runs are performed by the confirm agent.
 
 ## Rules (non-negotiable)
 
@@ -268,8 +268,8 @@ This costs two extra calls per hit and turns most 0.5–0.7 flags into either a 
 2. **No fixes in Jev** — never ask Jev to rewrite code or suggest patches in `instructions`.
 3. **Never drop a finding** — if a noul fired at ≥ 0.5, it appears in the compile table. Tier orders; it never filters.
 4. **Never pick one winner** — co-occurring issues all get rows.
-5. **User gate** — compiled report first; code changes second.
-6. **Confirm flags** — you validate Jev output before fixing; Jev can misfire. Evidence is quoted or `unlocated`, never regex-guessed.
+5. **Human decision** — compile and confirm are look-only; no application edits in this skill.
+6. **Confirm flags** — you validate Jev output before proposing remedies; Jev can misfire. Evidence is quoted or `unlocated`, never regex-guessed.
 7. **State carries context** — always send `path`, `kind`, `language`; send `chunk` and `imports` on every partial slice.
 8. **No secrets in state or notes** — redact live production secrets from snippets when possible; use placeholders in examples. Never put a real key in `note`.
 
@@ -288,3 +288,5 @@ That MCP is independent. This skill stays **HTTP-first** so it works anywhere wi
 - TypeSafe docs: https://docs.typesafe.ai/ — see *State*, *Noul*, and *Advanced: structure* (structured `instructions` and `criteria`)
 - Jev API: `POST https://api.typesafe.ai/v1/systemone`
 - jev-review (optional MCP): https://github.com/NiazMorshed2007/jev-review
+
+Validate every expected answer and finite Noul in [0,1]; missing/failed responses are incomplete, never clean. When masking a suspected credential, preserve its credential/capability role and local evidence reference; do not silently treat a redacted token as a harmless placeholder.

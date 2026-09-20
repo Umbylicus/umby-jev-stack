@@ -1,42 +1,112 @@
 {
   "has_behavior_change": {
     "type": "noul",
-    "instructions": "Does this change alter runtime behavior, business logic, or observable output (not comments or formatting only)?",
+    "instructions": {
+      "question": "Does this change alter runtime behavior, business logic, or observable output (not comments or formatting only)?",
+      "inspect": "content and supplied context",
+      "context": "Use before/after code, complete changed-file inventory, relevant tests and test-search coverage. Missing supplied context is unknown, not absence of tests.",
+      "focus": "Require concrete evidence for this question independently; do not infer it from another answer.",
+      "ignore": [
+        "Formatting or comments-only changes",
+        "Absence inferred from a partial patch or omitted tests",
+        "A test file name alone as proof of behavioral coverage"
+      ]
+    },
     "criteria": {
-      "true": "Observable behavior or logic was changed",
-      "false": "No behavior change worth flagging"
+      "true": {
+        "what": "Observable behavior or logic was changed"
+      },
+      "false": {
+        "what": "No behavior change worth flagging"
+      }
     }
   },
   "has_no_test_update": {
     "type": "noul",
-    "instructions": "Given the behavior change visible here, are there no corresponding test file changes in the provided context?",
+    "instructions": {
+      "question": "Given the behavior change visible here, are there no corresponding test file changes in the provided context?",
+      "inspect": "content and supplied context",
+      "context": "Use before/after code, complete changed-file inventory, relevant tests and test-search coverage. Missing supplied context is unknown, not absence of tests.",
+      "focus": "Require an observable behavior/contract change and complete changed-file inventory establishing no corresponding test update. This is a review candidate, not proof existing tests are inadequate.",
+      "ignore": [
+        "Formatting or comments-only changes",
+        "Absence inferred from a partial patch or omitted tests",
+        "A test file name alone as proof of behavioral coverage"
+      ]
+    },
     "criteria": {
-      "true": "Behavior changed but no test updates are present in context",
-      "false": "Test updates appear present or no behavior change"
+      "true": {
+        "what": "Behavior changed but no test updates are present in context"
+      },
+      "false": {
+        "what": "No relevant behavior change, corresponding tests updated, or changed-file inventory incomplete."
+      }
     }
   },
   "has_no_test_file": {
     "type": "noul",
-    "instructions": "Does this module or feature area appear to have no test file at all in the provided context?",
+    "instructions": {
+      "question": "Does this module or feature area appear to have no test file at all in the provided context?",
+      "inspect": "content and supplied context",
+      "context": "Use before/after code, complete changed-file inventory, relevant tests and test-search coverage. Missing supplied context is unknown, not absence of tests.",
+      "focus": "Require a recorded search across relevant unit, integration and end-to-end test locations establishing no related test file; missing context alone must remain false.",
+      "ignore": [
+        "Formatting or comments-only changes",
+        "Absence inferred from a partial patch or omitted tests",
+        "A test file name alone as proof of behavioral coverage"
+      ]
+    },
     "criteria": {
-      "true": "No test file is evident for this area",
-      "false": "A test file appears to exist"
+      "true": {
+        "what": "No test file is evident for this area"
+      },
+      "false": {
+        "what": "A related test exists or search coverage is incomplete/unknown."
+      }
     }
   },
   "touches_public_api_without_test": {
     "type": "noul",
-    "instructions": "Does this change modify a public API, export, or contract without any test changes in the provided context?",
+    "instructions": {
+      "question": "Does this change modify a public API, export, or contract without any test changes in the provided context?",
+      "inspect": "content and supplied context",
+      "context": "Use before/after code, complete changed-file inventory, relevant tests and test-search coverage. Missing supplied context is unknown, not absence of tests.",
+      "focus": "Require an observable behavior/contract change and complete changed-file inventory establishing no corresponding test update. This is a review candidate, not proof existing tests are inadequate.",
+      "ignore": [
+        "Formatting or comments-only changes",
+        "Absence inferred from a partial patch or omitted tests",
+        "A test file name alone as proof of behavioral coverage"
+      ]
+    },
     "criteria": {
-      "true": "Public API changed without test changes in context",
-      "false": "No untested public API change evident"
+      "true": {
+        "what": "Public API changed without test changes in context"
+      },
+      "false": {
+        "what": "No relevant behavior change, corresponding tests updated, or changed-file inventory incomplete."
+      }
     }
   },
   "has_edge_case_untested": {
     "type": "noul",
-    "instructions": "Does this change add new branches, error paths, or edge cases that appear untested in the provided context?",
+    "instructions": {
+      "question": "Does this change add new branches, error paths, or edge cases that appear untested in the provided context?",
+      "inspect": "content and supplied context",
+      "context": "Use before/after code, complete changed-file inventory, relevant tests and test-search coverage. Missing supplied context is unknown, not absence of tests.",
+      "focus": "Name a new branch/input and compare the supplied relevant test assertions; unknown coverage is not an established gap.",
+      "ignore": [
+        "Formatting or comments-only changes",
+        "Absence inferred from a partial patch or omitted tests",
+        "A test file name alone as proof of behavioral coverage"
+      ]
+    },
     "criteria": {
-      "true": "New branches or edge cases appear untested",
-      "false": "No untested edge cases worth flagging"
+      "true": {
+        "what": "New branches or edge cases appear untested"
+      },
+      "false": {
+        "what": "No untested edge cases worth flagging"
+      }
     }
   }
 }
