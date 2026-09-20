@@ -7,13 +7,13 @@
     {
       "name": "umby-jev-stack",
       "description": "Umby Jev skill tree — all skills (install the whole tree)",
-      "version": "1.5.0",
+      "version": "1.5.1",
       "source": "./"
     },
     {
       "name": "umby-jev-review",
       "description": "Skill 1: full Jev code review — six independent Nouls, executable defects only, path/kind/chunk context in state",
-      "version": "2.0.0",
+      "version": "2.0.1",
       "source": "./skills/umby-jev-review"
     },
     {

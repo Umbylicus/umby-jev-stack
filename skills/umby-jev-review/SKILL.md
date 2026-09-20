@@ -13,7 +13,7 @@ description: >-
 license: MIT
 metadata:
   author: umby
-  version: "2.0.0"
+  version: "2.0.1"
   homepage: https://github.com/Umbylicus/umby-jev-stack
   source: https://github.com/Umbylicus/umby-jev-stack/tree/main/skills/umby-jev-review
   openclaw:
@@ -48,6 +48,17 @@ A 1.x full sweep of a ~1,200-snippet repo produced 544 flags; a manual confirm p
 | Every 0.5 flag looked equally urgent | Rows still start at noul ≥ 0.5, but a `tier` column marks confirm-first hits (≥ 0.7, or any security noul) |
 
 Question **keys** and compile **labels** are unchanged, so 1.x reports remain comparable. Question **wording** is new; do not mix 1.x and 2.0 wording in one run.
+
+## What changed in 2.0.1
+
+| Change | Detail |
+| --- | --- |
+| HTTPS pool sized from the repo | Enumerate in-scope files, build snippets, set `concurrency = snippets.length` — one wave of keep-alive `POST`s when the runtime allows (50 snippets → 50 in-flight; 250 → 250). These are Jev HTTP calls, not Cursor agents. |
+| Chunk cap is character-based | Each `state.content` ≤ **10,000 characters** (split at top-level boundaries when possible). Line-count targets from 2.0 are retired. |
+| Backoff without pre-capping | On `EAGAIN` / `EMFILE` / `ECONNRESET` / HTTP `429`: retry with backoff; reduce concurrency only as much as needed after repeated failures — never default to a fixed low cap. |
+| Compile threshold unchanged | Review compile still **noul ≥ 0.5**. Speedy Jev’s 0.70 gate is a different skill — do not apply here. |
+
+Frozen [`questions.json`](questions.json) wording is unchanged.
 
 ## Prerequisites
 
@@ -142,10 +153,10 @@ Send an object, not a bare string. The questions reference these keys by name.
 
 ### Chunking
 
-Jev makes gut-check judgments; a 700-line slab is not a gut check. Chunk size was the strongest predictor of 1.x false positives.
+Jev makes gut-check judgments; oversized slabs were the strongest predictor of 1.x false positives. Size every snippet by **characters**, not line count.
 
-1. Whole file if ≤ **250 lines**.
-2. Otherwise split at **top-level boundaries** (blank line between functions, classes, route registrations, SQL statements) into chunks of **120–250 lines** (~4–9k chars). Never split inside a function if you can avoid it; if a single function exceeds 250 lines, it is its own chunk.
+1. **Whole file** when `content` ≤ **10,000 characters** (omit `chunk`).
+2. Otherwise split at **top-level boundaries** (blank line between functions, classes, route registrations, SQL statements) into the fewest chunks where each `content` ≤ **10,000 characters**. Never split inside a function if you can avoid it; if a single function exceeds the cap, it is its own chunk (hard-split the text if one line alone exceeds 10k).
 3. Every chunk gets the same `imports` block and its own `chunk` range. Line numbers are 1-based and refer to the original file.
 4. Never overlap chunks (overlap duplicates rows). Never drop a chunk on `max_tokens_exceeded` — split it further and re-run.
 
@@ -184,16 +195,28 @@ Response shape: `answers.<key>.noul` is a 0–1 probability; `model` is the vers
 - Apply the [scope](#scope--what-to-send) and [`kind`](#state-shape) tables; record the `kind` you assigned so reviewers see it in the compile table.
 - Whole-repo coverage = file/snippet fan-out; each snippet gets the **full** six-question set.
 
-### 2. Parallel Jev calls
+### 2. Size the HTTPS pool from the repo (always)
 
-- One request per file (or per chunk per the [chunking](#chunking) rules).
-- Run calls **in parallel** when the runtime allows (parallel agents OK); 8 concurrent is a safe default.
-- Work **one file at a time** when applying fixes later; review can fan out.
-- On `429` or rate limits, backoff and retry (SDKs do this automatically; with `curl`, sleep and retry).
+Before the first Jev call, **measure the repo** and size the pool from that count — do not guess a fixed concurrency.
+
+1. **Walk** the target repo for in-scope files ([scope](#scope--what-to-send)). Skip `node_modules`, `.git`, `dist`, `build`, `coverage`, `.wrangler`, `.next`, `.turbo`, and other excluded dirs while enumerating.
+2. **Build snippets** — one per whole file or per [chunk](#chunking); each carries `path`, `kind`, `language`, optional `chunk` / `imports`, and `content` (≤ 10,000 chars).
+3. **Count:** `N = snippets.length`.
+4. **Concurrency:** `concurrency = N` for this run. Fire **one wave** of `N` in-flight `POST`s to `https://api.typesafe.ai/v1/systemone` when the runtime allows (50 snippets → 50 parallel Jev HTTP calls; 250 → 250). These are Jev HTTP requests, **not** Cursor agents or subagents.
+5. **Keep-alive** — reuse connections (e.g. undici `Agent`, `fetch` with a keep-alive dispatcher, or equivalent) with pool size matching `N`.
+6. **On pressure** — `EAGAIN`, `EMFILE`, `ECONNRESET`, connect timeouts, or HTTP `429`: exponential backoff and retry. **Reduce concurrency only as much as needed** after repeated failures in a window; do not pre-cap below `N` without cause.
+7. **Log** at start: files scanned, `N`, and effective concurrency.
+
+Optional reference runner (Project store): `internal/jev-full-scan-runner-v2.mjs` — follows this sizing contract; load frozen questions from [`questions.json`](questions.json).
+
+### 3. Parallel Jev calls
+
+- One request per snippet (whole file or chunk).
+- Launch all `N` calls per [step 2](#2-size-the-https-pool-from-the-repo-always); work **one file at a time** when applying fixes later.
 - On `max_tokens_exceeded`, split the chunk and re-run; **do not skip**.
 - Persist raw responses (JSONL of `path`, `chunk`, `answers`, `model`) so the compile pass can be re-run without new Jev calls.
 
-### 3. One compile pass — every flag, no winners
+### 4. One compile pass — every flag, no winners
 
 Expand each Jev response into **one row per positive finding**. A single snippet may produce multiple rows.
 
@@ -205,7 +228,7 @@ Expand each Jev response into **one row per positive finding**. A single snippet
 
 Rules:
 
-- **Threshold:** noul ≥ 0.5 → positive finding (record the exact score). Nothing at or above 0.5 is dropped.
+- **Threshold:** noul ≥ **0.5** → positive finding (record the exact score). Nothing at or above 0.5 is dropped. This is the **review** compile gate — **Speedy Jev** (0.70) is a different skill; do not apply it here.
 - **Tier column:** `A` (confirm first) when noul ≥ **0.7**, **or** when the question is `has_exposed_secret`, `has_injection_or_xss`, or `has_insecure_auth` at any score ≥ 0.5 — security hits are cheap to confirm and expensive to miss. `B` for syntax, schema, and logic hits in 0.5–0.7. Tier orders the confirm pass; it never removes a row.
 - **Map labels:** syntax → `Syntax_Or_Type_Error`; secret / injection / auth → `Vulnerability_Flagged`; schema → `Schema_Mismatch`; logic → `Logic_Bug`.
 - **Multiple findings per path are required** when multiple nouls fire. Never collapse to one label.
@@ -224,14 +247,14 @@ When a noul fires on a chunk longer than ~120 lines, re-run Jev on the two halve
 
 This costs two extra calls per hit and turns most 0.5–0.7 flags into either a quotable line or a documented non-reproduction.
 
-### 4. Present to user — no fixes yet
+### 5. Present to user — no fixes yet
 
 - Show the compiled table sorted by tier then path, and a short per-finding note: path, label, question key, quoted evidence.
 - State the totals: snippets sent, clean, flagged, rows by tier.
 - **Do not hallucinate fixes inside Jev calls.** Jev only classifies.
 - **Do not edit code** until the user has reviewed the compiled findings.
 
-### 5. After user review — confirm pass
+### 6. After user review — confirm pass
 
 - Re-read every flagged snippet yourself, tier A first; confirm or reject each row with a one-line reason.
 - Reject reasons that are always valid (these were 543 of 544 rows in the 1.x sweep): the cited line is a comment, header, or prose; the value is a placeholder or read from env; the file is a test or fixture (`kind`); the HTML is constant or every dynamic part is wrapped in `esc()`; the SQL is parameterized or a migration; the "missing" symbol is imported or declared elsewhere in the file; the behaviour is an intentional guard explained by a comment or ADR; the auth check lives in router middleware.

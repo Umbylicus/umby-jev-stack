@@ -6,7 +6,7 @@ This repo is a **skill tree**, not a one-off. Each skill lives in its own folder
 
 | # | Folder | Plugin name | What it does |
 | --- | --- | --- | --- |
-| 1 | `skills/umby-jev-review/` | `umby-jev-review` | Full repo review — six independent Nouls, executable defects only, `path`/`kind`/`chunk` in state, compile every finding (v2.0) |
+| 1 | `skills/umby-jev-review/` | `umby-jev-review` | Full repo review — six independent Nouls, executable defects only, `path`/`kind`/`chunk` in state, repo-sized HTTPS pool, compile every finding (v2.0.1) |
 | 2 | `skills/umby-jev-diff-gate/` | `umby-jev-diff-gate` | Same hunt Nouls on git diff / PR patch only |
 | 3 | `skills/umby-jev-secrets/` | `umby-jev-secrets` | Stricter secret + PII sweep (keys, tokens, passwords, emails, account IDs) |
 | 4 | `skills/umby-jev-breaking-change/` | `umby-jev-breaking-change` | API / schema / export contract breaks |
