@@ -1,0 +1,42 @@
+{
+  "has_behavior_change": {
+    "type": "noul",
+    "instructions": "Does this change alter runtime behavior, business logic, or observable output (not comments or formatting only)?",
+    "criteria": {
+      "true": "Observable behavior or logic was changed",
+      "false": "No behavior change worth flagging"
+    }
+  },
+  "has_no_test_update": {
+    "type": "noul",
+    "instructions": "Given the behavior change visible here, are there no corresponding test file changes in the provided context?",
+    "criteria": {
+      "true": "Behavior changed but no test updates are present in context",
+      "false": "Test updates appear present or no behavior change"
+    }
+  },
+  "has_no_test_file": {
+    "type": "noul",
+    "instructions": "Does this module or feature area appear to have no test file at all in the provided context?",
+    "criteria": {
+      "true": "No test file is evident for this area",
+      "false": "A test file appears to exist"
+    }
+  },
+  "touches_public_api_without_test": {
+    "type": "noul",
+    "instructions": "Does this change modify a public API, export, or contract without any test changes in the provided context?",
+    "criteria": {
+      "true": "Public API changed without test changes in context",
+      "false": "No untested public API change evident"
+    }
+  },
+  "has_edge_case_untested": {
+    "type": "noul",
+    "instructions": "Does this change add new branches, error paths, or edge cases that appear untested in the provided context?",
+    "criteria": {
+      "true": "New branches or edge cases appear untested",
+      "false": "No untested edge cases worth flagging"
+    }
+  }
+}

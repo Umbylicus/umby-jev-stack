@@ -1,0 +1,58 @@
+{
+  "has_api_key": {
+    "type": "noul",
+    "instructions": "Does this snippet contain a hardcoded API key, access key, or similar credential string?",
+    "criteria": {
+      "true": "A hardcoded API or access key is present",
+      "false": "No API key worth flagging"
+    }
+  },
+  "has_bearer_token": {
+    "type": "noul",
+    "instructions": "Does this snippet contain a hardcoded bearer token, JWT, session token, or OAuth token?",
+    "criteria": {
+      "true": "A hardcoded bearer or session token is present",
+      "false": "No bearer token worth flagging"
+    }
+  },
+  "has_password": {
+    "type": "noul",
+    "instructions": "Does this snippet contain a hardcoded password, passphrase, or PIN in source?",
+    "criteria": {
+      "true": "A hardcoded password or passphrase is present",
+      "false": "No password worth flagging"
+    }
+  },
+  "has_private_key": {
+    "type": "noul",
+    "instructions": "Does this snippet contain a private key, PEM block, SSH key, or signing key material?",
+    "criteria": {
+      "true": "Private key material is present",
+      "false": "No private key worth flagging"
+    }
+  },
+  "has_connection_string": {
+    "type": "noul",
+    "instructions": "Does this snippet contain a database or service connection string with embedded credentials?",
+    "criteria": {
+      "true": "A connection string with embedded credentials is present",
+      "false": "No connection string worth flagging"
+    }
+  },
+  "has_email_pii": {
+    "type": "noul",
+    "instructions": "Does this snippet contain what appears to be a real personal email address (not example.com or obvious placeholder)?",
+    "criteria": {
+      "true": "A plausible personal email address is present",
+      "false": "No personal email worth flagging"
+    }
+  },
+  "has_account_id": {
+    "type": "noul",
+    "instructions": "Does this snippet contain a hardcoded account ID, customer ID, SSN, or other sensitive account identifier?",
+    "criteria": {
+      "true": "A sensitive account or customer identifier is present",
+      "false": "No account ID worth flagging"
+    }
+  }
+}

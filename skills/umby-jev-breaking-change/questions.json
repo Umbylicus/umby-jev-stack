@@ -1,0 +1,50 @@
+{
+  "has_removed_export": {
+    "type": "noul",
+    "instructions": "Does this change remove or un-export a public function, class, type, or module symbol that consumers may depend on?",
+    "criteria": {
+      "true": "A public export or symbol was removed",
+      "false": "No removed export worth flagging"
+    }
+  },
+  "has_renamed_field": {
+    "type": "noul",
+    "instructions": "Does this change rename a public field, property, or JSON key in an API or schema contract?",
+    "criteria": {
+      "true": "A public field or key was renamed",
+      "false": "No renamed field worth flagging"
+    }
+  },
+  "has_type_change": {
+    "type": "noul",
+    "instructions": "Does this change alter the type, format, or nullability of a public field or return value in a breaking way?",
+    "criteria": {
+      "true": "A breaking type or format change is present",
+      "false": "No breaking type change worth flagging"
+    }
+  },
+  "has_new_required_field": {
+    "type": "noul",
+    "instructions": "Does this change add a new required field or parameter to a public API, schema, or request body?",
+    "criteria": {
+      "true": "A new required field or parameter was added",
+      "false": "No new required field worth flagging"
+    }
+  },
+  "has_endpoint_change": {
+    "type": "noul",
+    "instructions": "Does this change remove, rename, or change the HTTP method or path of a public API endpoint?",
+    "criteria": {
+      "true": "A public endpoint was changed or removed",
+      "false": "No endpoint change worth flagging"
+    }
+  },
+  "has_enum_break": {
+    "type": "noul",
+    "instructions": "Does this change remove or rename a value from a public enum, union, or status code set?",
+    "criteria": {
+      "true": "A public enum or union value was broken",
+      "false": "No enum break worth flagging"
+    }
+  }
+}
