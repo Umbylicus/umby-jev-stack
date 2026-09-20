@@ -1,12 +1,42 @@
 {
-  "review_label": {
-    "type": "choice",
-    "instructions": "Pick the single highest-priority label for this code snippet. If multiple issues exist, choose the most severe.",
+  "has_syntax_or_type_error": {
+    "type": "noul",
+    "instructions": "Does this snippet contain a syntax, parse, or type error; missing import; invalid reference; or other defect that would prevent compile or typecheck?",
     "criteria": {
-      "Clean_Codebase": "No syntax/type errors, security issues, schema mismatches, or logic bugs worth flagging",
-      "Syntax_Or_Type_Error": "Syntax, parse, or type error; missing import; invalid reference; code would not compile or typecheck",
-      "Vulnerability_Flagged": "Hardcoded secret, injection, XSS, auth bypass, unsafe eval, or similar security flaw",
-      "Schema_Mismatch": "API or schema contract break: wrong fields, missing required keys, incompatible types vs declared schema"
+      "true": "A syntax, parse, or type error is present",
+      "false": "No syntax or type error worth flagging"
+    }
+  },
+  "has_exposed_secret": {
+    "type": "noul",
+    "instructions": "Does this snippet contain a hardcoded secret, API key, token, password, or other credential exposed in source?",
+    "criteria": {
+      "true": "A hardcoded secret or exposed credential is present",
+      "false": "No exposed secret worth flagging"
+    }
+  },
+  "has_injection_or_xss": {
+    "type": "noul",
+    "instructions": "Does this snippet contain an injection risk (SQL, shell, template, LDAP, command) or XSS / unsafe HTML or JS output?",
+    "criteria": {
+      "true": "An injection or XSS risk is present",
+      "false": "No injection or XSS risk worth flagging"
+    }
+  },
+  "has_insecure_auth": {
+    "type": "noul",
+    "instructions": "Does this snippet contain an authentication or authorization flaw (bypass, missing check, broken session, privilege escalation)?",
+    "criteria": {
+      "true": "An auth or authorization flaw is present",
+      "false": "No auth flaw worth flagging"
+    }
+  },
+  "has_schema_mismatch": {
+    "type": "noul",
+    "instructions": "Does this snippet break an API or schema contract (wrong field names, missing required keys, incompatible types vs declared schema or interface)?",
+    "criteria": {
+      "true": "A schema or API contract break is present",
+      "false": "No schema mismatch worth flagging"
     }
   },
   "has_logic_bug": {

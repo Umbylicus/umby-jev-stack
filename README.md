@@ -1,48 +1,50 @@
 # Umby's Jev Stack
 
-Portable agent skill that teaches Cursor, Claude Code, Codex, and similar coding agents to run [TypeSafe Jev](https://typesafe.ai/) as a **cheap classifier** over HTTP (`api.typesafe.ai`), with an optional community [jev-review MCP](https://github.com/NiazMorshed2007/jev-review) for richer continuous review.
+Add Umby's Jev review to any repo in minutes. [TypeSafe Jev](https://typesafe.ai/) classifies code over HTTP — no community MCP required.
 
-This repo is small and honest: **not every unnamed chat product will load it automatically.** Install it where your agent reads skills or plugins.
+**Repo:** https://github.com/Umbylicus/umby-jev-stack
+
+## Quick start (4 steps)
+
+1. **Get a key** — [console.typesafe.ai](https://console.typesafe.ai/) → create a TypeSafe API key.
+2. **Install this skill** — see [Install](#install) below.
+3. **Set `JEV_API_KEY`** — exact name, case-sensitive. See [API key](#api-key-jev_api_key).
+4. **Prompt your agent:**
+
+   > Run Umby's Jev Stack on this repo. Use the frozen questions in the skill. Compile every finding. Do not drop any.
 
 ## What it does
 
-- Sends focused file or diff context to Jev with **frozen review labels** (see skill).
-- Hunts syntax/type errors, secrets, injection, XSS, auth issues, schema breaks, and logic bugs.
-- **Never hallucinates fixes inside Jev** — Jev classifies; the coding agent confirms flags.
-- Compiles every non-clean finding; **never drops a finding**.
-- Fixes happen **only after the user reviews** the compiled report.
+- Fans out **one HTTP call per file/snippet** with **independent Noul questions** per hunt (syntax, secrets, injection/XSS, auth, schema, logic).
+- **Every positive flag gets a row** in the compiled report — never "pick the most important one."
+- Frozen compile labels: `Clean_Codebase`, `Syntax_Or_Type_Error`, `Vulnerability_Flagged`, `Schema_Mismatch` (plus logic findings).
+- Jev classifies only; the coding agent compiles and confirms — **no fixes until you review**.
 
-## Requirements
+This stack is **HTTP-first**. The [jev-review MCP](https://github.com/NiazMorshed2007/jev-review) is **optional** and not required.
 
-- A Jev API key from the [TypeSafe console](https://console.typesafe.ai/settings/keys)
-- `curl`, `fetch`, or any HTTP client (no Cursor-only tools required)
-- Optional: Node.js 20+ if you add [jev-review](https://github.com/NiazMorshed2007/jev-review) MCP separately
+## API key (`JEV_API_KEY`)
 
-## API key
+Get a key at [console.typesafe.ai](https://console.typesafe.ai/). **Do not commit keys.**
 
-Export your key in the shell (name used by this skill and jev-review):
+| Where | How |
+| --- | --- |
+| **Shell** | `export JEV_API_KEY="your-key"` |
+| **Cursor desktop** | Cursor Settings → MCP / plugin environment, **or** `export` in shell then `launchctl setenv JEV_API_KEY "$JEV_API_KEY"` and fully quit/reopen Cursor from the Dock (Dock apps don't inherit terminal exports). |
+| **Cursor cloud agents** | **Runtime Secret** named exactly `JEV_API_KEY` — not Environment Variable, not Build Secret, not `Jev_API_KEY`. |
 
-```bash
-export JEV_API_KEY="your-key-here"
-```
-
-Get a key at [console.typesafe.ai/settings/keys](https://console.typesafe.ai/settings/keys). **Do not commit keys, tokens, or `.env` files.**
-
-### Cloud agents
-
-Cursor Cloud Agents and similar remote VMs need **`JEV_API_KEY` as a Runtime Secret** (or equivalent platform env var). Desktop MCP config from your laptop does **not** auto-appear on cloud VMs — set the secret in the cloud agent environment.
+Verify without printing the key: `test -n "$JEV_API_KEY" && echo ok`
 
 ## Install
 
-### Cursor (plugin)
+### Cursor
 
 ```bash
 npx plugins add Umbylicus/umby-jev-stack --target cursor
 ```
 
-Restart Cursor. Invoke the `umby-jev-stack` skill when you want a Jev pass on changed files.
+Restart Cursor (or Reload Window). Set `JEV_API_KEY` as above.
 
-**Manual copy:** clone this repo and copy `skills/umby-jev-stack/` into `.cursor/skills/` (project) or `~/.cursor/skills/` (user).
+**Manual:** copy `skills/umby-jev-stack/` to `.cursor/skills/` (project) or `~/.cursor/skills/` (user).
 
 ### Claude Code
 
@@ -50,7 +52,7 @@ Restart Cursor. Invoke the `umby-jev-stack` skill when you want a Jev pass on ch
 npx plugins add Umbylicus/umby-jev-stack --target claude-code
 ```
 
-Or copy `skills/umby-jev-stack/SKILL.md` into your project's `.claude/skills/` tree.
+Then `export JEV_API_KEY` in the shell that launches Claude Code.
 
 ### Codex
 
@@ -58,39 +60,33 @@ Or copy `skills/umby-jev-stack/SKILL.md` into your project's `.claude/skills/` t
 npx plugins add Umbylicus/umby-jev-stack --target codex
 ```
 
-Or copy the skill folder into the skills path your Codex setup documents.
+Then `export JEV_API_KEY` in the shell that launches Codex.
 
-### Other agents
+## Workflow
 
-Copy `skills/umby-jev-stack/SKILL.md` (and references if you add any) into whatever skills directory your product uses. The workflow is plain HTTP + shell — no vendor lock-in.
+1. Agent gathers files (path + content, or focused diff).
+2. **Parallel** Jev calls — one per file/chunk, full question set each time (`POST https://api.typesafe.ai/v1/systemone`, model `jev-latest`).
+3. **One compile pass** — expand every noul ≥ 0.5 into its own row; multiple rows per file when needed.
+4. You review the compiled report. Agent does **not** fix yet.
+5. After approval, agent confirms flags and fixes one file at a time.
+
+Full skill: [`skills/umby-jev-stack/SKILL.md`](skills/umby-jev-stack/SKILL.md) · frozen questions: [`skills/umby-jev-stack/questions.json`](skills/umby-jev-stack/questions.json)
 
 ## Optional: jev-review MCP
 
-For **continuous, dimension-scored review** (correctness, security, complexity, tests, etc.), install the community MCP separately — we do **not** vendor it:
+For continuous multi-dimension scoring while coding (not bundled):
 
 ```bash
 npx plugins add NiazMorshed2007/jev-review
 ```
 
-Docs: [github.com/NiazMorshed2007/jev-review](https://github.com/NiazMorshed2007/jev-review)
+https://github.com/NiazMorshed2007/jev-review
 
-Umby Jev Stack and jev-review complement each other:
-
-| | Umby Jev Stack (this repo) | jev-review MCP |
+| | Umby Jev Stack | jev-review MCP |
 | --- | --- | --- |
-| Transport | HTTP `POST /v1/systemone` | Local MCP stdio |
-| Output | Frozen pass/fail labels per file | Multi-dimension 1–10 scores |
-| Best for | Cheap parallel file sweep + compile | Iterative quality loop while coding |
-
-## Workflow (summary)
-
-1. Agent gathers changed or requested files (path + content, or a focused diff).
-2. **Parallel** Jev calls — one state per file or coherent chunk (respect token limits).
-3. **One compile pass** — merge all answers into a single findings table; include confidence and model version from each response.
-4. Present compiled findings to the user. **Do not fix yet.**
-5. After user review, agent may confirm each flag and apply fixes the user approves.
-
-See [`skills/umby-jev-stack/SKILL.md`](skills/umby-jev-stack/SKILL.md) for frozen questions, HTTP examples, and agent rules.
+| Required? | **No MCP** — HTTP only | Optional add-on |
+| Transport | `POST /v1/systemone` | Local MCP stdio |
+| Output | Independent Noul flags per hunt | Multi-dimension 1–10 scores |
 
 ## Direct HTTP example
 
@@ -98,27 +94,11 @@ See [`skills/umby-jev-stack/SKILL.md`](skills/umby-jev-stack/SKILL.md) for froze
 curl -s https://api.typesafe.ai/v1/systemone \
   -H "Authorization: Bearer $JEV_API_KEY" \
   -H "Content-Type: application/json" \
-  -d @- <<'EOF'
-{
-  "model": "jev-latest",
-  "state": {
-    "path": "src/auth.ts",
-    "content": "const token = 'sk-live-hardcoded';"
-  },
-  "questions": {
-    "review_label": {
-      "type": "choice",
-      "instructions": "Pick the single highest-priority label for this code snippet.",
-      "criteria": {
-        "Clean_Codebase": "No syntax/type errors, security issues, schema mismatches, or logic bugs worth flagging",
-        "Syntax_Or_Type_Error": "Syntax, parse, or type error; missing import; invalid reference; code would not compile or typecheck",
-        "Vulnerability_Flagged": "Hardcoded secret, injection, XSS, auth bypass, unsafe eval, or similar security flaw",
-        "Schema_Mismatch": "API or schema contract break: wrong fields, missing required keys, incompatible types vs declared schema"
-      }
-    }
-  }
-}
-EOF
+  -d "$(jq -n \
+    --arg path 'src/auth.ts' \
+    --arg content \"const token = 'sk-live-hardcoded';\" \
+    --slurpfile q skills/umby-jev-stack/questions.json \
+    '{model:\"jev-latest\",state:{path:$path,content:$content},questions:$q[0]}')"
 ```
 
 ## License
