@@ -1,0 +1,20 @@
+{
+  "review_label": {
+    "type": "choice",
+    "instructions": "Pick the single highest-priority label for this code snippet. If multiple issues exist, choose the most severe.",
+    "criteria": {
+      "Clean_Codebase": "No syntax/type errors, security issues, schema mismatches, or logic bugs worth flagging",
+      "Syntax_Or_Type_Error": "Syntax, parse, or type error; missing import; invalid reference; code would not compile or typecheck",
+      "Vulnerability_Flagged": "Hardcoded secret, injection, XSS, auth bypass, unsafe eval, or similar security flaw",
+      "Schema_Mismatch": "API or schema contract break: wrong fields, missing required keys, incompatible types vs declared schema"
+    }
+  },
+  "has_logic_bug": {
+    "type": "noul",
+    "instructions": "Does this snippet contain a logic bug (wrong condition, off-by-one, race, null mishandling) that could cause incorrect behavior in production?",
+    "criteria": {
+      "true": "A plausible logic defect is present",
+      "false": "No logic defect worth flagging"
+    }
+  }
+}
