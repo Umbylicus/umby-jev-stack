@@ -1,0 +1,13 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "umby-jev-review",
+  "version": "1.1.0",
+  "description": "Full Jev code review — independent Nouls per hunt, compile every finding",
+  "author": {
+    "name": "Umby",
+    "url": "https://github.com/Umbylicus"
+  },
+  "homepage": "https://github.com/Umbylicus/umby-jev-stack",
+  "repository": "https://github.com/Umbylicus/umby-jev-stack",
+  "license": "MIT"
+}

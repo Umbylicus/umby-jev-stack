@@ -1,0 +1,20 @@
+{
+  "name": "umby-jev-stack",
+  "metadata": {
+    "pluginRoot": "."
+  },
+  "plugins": [
+    {
+      "name": "umby-jev-stack",
+      "description": "Umby Jev skill tree — all skills (install the whole tree)",
+      "version": "1.2.0",
+      "source": "./"
+    },
+    {
+      "name": "umby-jev-review",
+      "description": "Skill 1: full Jev code review — independent Nouls per hunt, compile every finding",
+      "version": "1.1.0",
+      "source": "./skills/umby-jev-review"
+    }
+  ]
+}
