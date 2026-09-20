@@ -1,0 +1,21 @@
+{
+  "issue_type": {
+    "type": "choice",
+    "instructions": "Classify this issue or ticket into exactly one primary type. This is categorization only — not a severity ranking.",
+    "criteria": {
+      "bug": "Reports broken behavior, error, regression, or failure",
+      "feature": "Requests new capability, enhancement, or improvement",
+      "question": "Asks how something works; no bug or feature request",
+      "security": "Reports vulnerability, exploit, leak, or security incident"
+    }
+  },
+  "urgency": {
+    "type": "score",
+    "instructions": "Rate how urgently this issue needs human attention (1 = can wait, 10 = drop everything). Score independently of issue type.",
+    "criteria": {
+      "1": "Trivial or cosmetic; no user impact",
+      "5": "Moderate impact; schedule normally",
+      "10": "Critical outage, active exploit, or severe user harm"
+    }
+  }
+}
