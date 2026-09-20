@@ -7,7 +7,7 @@
     {
       "name": "umby-jev-stack",
       "description": "Umby Jev skill tree — all skills (install the whole tree)",
-      "version": "1.3.0",
+      "version": "1.4.0",
       "source": "./"
     },
     {
@@ -63,6 +63,12 @@
       "description": "Skill 9: docs claims (version, price, API) for later LLM verify",
       "version": "1.0.0",
       "source": "./skills/umby-jev-docs-drift"
+    },
+    {
+      "name": "umby-jev-browser",
+      "description": "Skill 10: Jev-driven browser loop — thin driver, independent error Nouls, Choice next_action",
+      "version": "1.0.0",
+      "source": "./skills/umby-jev-browser"
     }
   ]
 }

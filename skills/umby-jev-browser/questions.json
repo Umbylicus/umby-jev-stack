@@ -1,0 +1,59 @@
+{
+  "has_js_exception": {
+    "type": "noul",
+    "instructions": "Does this page step show a JavaScript exception or uncaught error in console_errors?",
+    "criteria": {
+      "true": "A JS exception or uncaught console error is present on this step",
+      "false": "No JS exception worth flagging on this step"
+    }
+  },
+  "has_failed_network": {
+    "type": "noul",
+    "instructions": "Does this step include a failed network request (4xx/5xx, blocked, or net::ERR) in failed_network?",
+    "criteria": {
+      "true": "A failed or blocked network request is present",
+      "false": "No failed network request worth flagging"
+    }
+  },
+  "has_blank_or_error_page": {
+    "type": "noul",
+    "instructions": "Is the page blank, a generic error page (404/500), or missing expected main content for this URL?",
+    "criteria": {
+      "true": "Page is blank, error page, or clearly missing expected content",
+      "false": "Page renders expected content for this URL"
+    }
+  },
+  "has_broken_cta": {
+    "type": "noul",
+    "instructions": "Is a primary call-to-action broken, disabled without reason, or visibly non-functional (dead button, noop link)?",
+    "criteria": {
+      "true": "A primary CTA appears broken or non-functional",
+      "false": "No broken primary CTA worth flagging"
+    }
+  },
+  "has_auth_failure": {
+    "type": "noul",
+    "instructions": "Does this step show an authentication or authorization failure (login error, session expired, access denied)?",
+    "criteria": {
+      "true": "An auth or authorization failure is visible on this step",
+      "false": "No auth failure worth flagging"
+    }
+  },
+  "has_a11y_blocker": {
+    "type": "noul",
+    "instructions": "Is there a serious accessibility blocker on this step (missing name on focusable control, keyboard trap, invisible focus target)?",
+    "criteria": {
+      "true": "A serious accessibility blocker is present",
+      "false": "No serious a11y blocker worth flagging"
+    }
+  },
+  "next_action": {
+    "type": "choice",
+    "instructions": "Pick exactly ONE next browser action for the driver to execute on this step. Prefer progressing the navigation goal. Use click:<element_id> only for ids listed in state.clickable_elements. Use type_into when an input should be filled (driver supplies text from state.pending_type_text). Use go_url when navigation should jump to state.pending_url. Use done when this seed URL is sufficiently explored or no productive action remains.",
+    "criteria": {
+      "type_into": "Type into the target input field; driver uses state.pending_type_text",
+      "go_url": "Navigate to state.pending_url",
+      "done": "Stop on this seed URL — explored or dead end"
+    }
+  }
+}

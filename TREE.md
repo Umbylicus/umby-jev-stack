@@ -15,6 +15,7 @@ This repo is a **skill tree**, not a one-off. Each skill lives in its own folder
 | 7 | `skills/umby-jev-prompt-screen/` | `umby-jev-prompt-screen` | Jailbreak, secret-in-prompt, injection in user/issue text |
 | 8 | `skills/umby-jev-issue-triage/` | `umby-jev-issue-triage` | Issue type Choice + urgency Score (independent dimensions) |
 | 9 | `skills/umby-jev-docs-drift/` | `umby-jev-docs-drift` | Flag version/price/API claims — LLM verifies later |
+| 10 | `skills/umby-jev-browser/` | `umby-jev-browser` | Jev-driven browser loop — thin driver, error Nouls + Choice next_action |
 
 Add new skills as siblings under `skills/`.
 

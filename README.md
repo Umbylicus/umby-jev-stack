@@ -11,7 +11,7 @@ A **skill tree** of [TypeSafe Jev](https://typesafe.ai/) agent skills over HTTP.
 3. **Set `JEV_API_KEY`** — exact name, case-sensitive.
 4. **Prompt your agent** — e.g. *"Run umby-jev-review on this repo. Use frozen questions. Compile every finding."*
 
-## Skill tree (9 skills)
+## Skill tree (10 skills)
 
 | # | Skill | Use when |
 | --- | --- | --- |
@@ -24,8 +24,9 @@ A **skill tree** of [TypeSafe Jev](https://typesafe.ai/) agent skills over HTTP.
 | 7 | [`umby-jev-prompt-screen`](skills/umby-jev-prompt-screen/) | Jailbreak / injection in user text |
 | 8 | [`umby-jev-issue-triage`](skills/umby-jev-issue-triage/) | Issue type + urgency (independent) |
 | 9 | [`umby-jev-docs-drift`](skills/umby-jev-docs-drift/) | Docs claims to verify later |
+| 10 | [`umby-jev-browser`](skills/umby-jev-browser/) | Jev-driven browser loop — Playwright/a11y driver, error Nouls + next_action |
 
-See [`TREE.md`](TREE.md) for install details and how to add skill 10+.
+See [`TREE.md`](TREE.md) for install details and how to add skill 11+.
 
 ## Install
 
