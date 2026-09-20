@@ -1,0 +1,50 @@
+{
+  "has_syntax_or_type_error": {
+    "type": "noul",
+    "instructions": "In this diff or patch hunk, does an added or changed line introduce a syntax, parse, or type error; missing import; or invalid reference?",
+    "criteria": {
+      "true": "A syntax, parse, or type error is introduced in the diff",
+      "false": "No syntax or type error worth flagging in the diff"
+    }
+  },
+  "has_exposed_secret": {
+    "type": "noul",
+    "instructions": "In this diff or patch hunk, does an added or changed line expose a hardcoded secret, API key, token, password, or credential?",
+    "criteria": {
+      "true": "A hardcoded secret or exposed credential is added in the diff",
+      "false": "No exposed secret worth flagging in the diff"
+    }
+  },
+  "has_injection_or_xss": {
+    "type": "noul",
+    "instructions": "In this diff or patch hunk, does an added or changed line introduce injection risk (SQL, shell, template, command) or XSS / unsafe output?",
+    "criteria": {
+      "true": "An injection or XSS risk is introduced in the diff",
+      "false": "No injection or XSS risk worth flagging in the diff"
+    }
+  },
+  "has_insecure_auth": {
+    "type": "noul",
+    "instructions": "In this diff or patch hunk, does an added or changed line weaken authentication or authorization?",
+    "criteria": {
+      "true": "An auth or authorization flaw is introduced in the diff",
+      "false": "No auth flaw worth flagging in the diff"
+    }
+  },
+  "has_schema_mismatch": {
+    "type": "noul",
+    "instructions": "In this diff or patch hunk, does an added or changed line break an API or schema contract?",
+    "criteria": {
+      "true": "A schema or API contract break is introduced in the diff",
+      "false": "No schema mismatch worth flagging in the diff"
+    }
+  },
+  "has_logic_bug": {
+    "type": "noul",
+    "instructions": "In this diff or patch hunk, does an added or changed line introduce a logic bug (wrong condition, off-by-one, race, null mishandling)?",
+    "criteria": {
+      "true": "A plausible logic defect is introduced in the diff",
+      "false": "No logic defect worth flagging in the diff"
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "umby-jev-diff-gate",
+  "version": "1.0.0",
+  "description": "Umby Jev Stack skill",
+  "author": { "name": "Umby", "url": "https://github.com/Umbylicus" },
+  "homepage": "https://github.com/Umbylicus/umby-jev-stack",
+  "repository": "https://github.com/Umbylicus/umby-jev-stack",
+  "license": "MIT"
+}
