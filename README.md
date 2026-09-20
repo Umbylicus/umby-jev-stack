@@ -15,7 +15,7 @@ A **skill tree** of [TypeSafe Jev](https://typesafe.ai/) agent skills over HTTP.
 
 | # | Skill | Use when |
 | --- | --- | --- |
-| 1 | [`umby-jev-review`](skills/umby-jev-review/) | Full repo review — independent Nouls per hunt |
+| 1 | [`umby-jev-review`](skills/umby-jev-review/) | Full repo review — six independent Nouls, executable defects only (v2.0) |
 | 2 | [`umby-jev-diff-gate`](skills/umby-jev-diff-gate/) | Same hunts on git diff / PR patch only |
 | 3 | [`umby-jev-secrets`](skills/umby-jev-secrets/) | Stricter secret + PII sweep |
 | 4 | [`umby-jev-breaking-change`](skills/umby-jev-breaking-change/) | API / schema / export breaks |
