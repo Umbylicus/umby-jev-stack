@@ -153,6 +153,8 @@
       "focus": [
         "Use current values, visible evidence and recent actions.",
         "Do not repeat satisfied steps; populated input is not a submitted search.",
+        "Do not type into a field that already shows the needed value.",
+        "On a coverage pass, choose an untried visible control.",
         "Select autocomplete suggestions when required.",
         "Do not toggle controls already in the requested state.",
         "Prefer a ready useful control over WAIT; recent WAIT is not evidence of loading.",
@@ -167,7 +169,7 @@
         "what": "Click an observed compatible control."
       },
       "TYPE_TEXT": {
-        "what": "Enter text supplied by a small text LLM into an observed editable control."
+        "what": "Enter text into an observed editable control. Use a string already in task context when one exists. A small text model supplies the string only when it is not already known."
       },
       "SELECT": {
         "what": "Select an observed native dropdown option."
@@ -194,7 +196,7 @@
     "instructions": {
       "question": "If the operation is CLICK, which offered target advances the entire goal?",
       "operation": "CLICK",
-      "focus": "Choose only an observed compatible index using field values, nearby text and recent actions. This speculative head does not decide the operation.",
+      "focus": "Choose only an observed compatible index using field values, nearby text and recent actions. Prefer an untried control. This speculative head does not decide the operation.",
       "ignore": [
         "Invented indices",
         "Already satisfied fields",
@@ -208,7 +210,7 @@
     "instructions": {
       "question": "If the operation is TYPE_TEXT, which offered target advances the entire goal?",
       "operation": "TYPE_TEXT",
-      "focus": "Choose only an observed compatible index using field values, nearby text and recent actions. This speculative head does not decide the operation.",
+      "focus": "Choose only an observed compatible index using field values, nearby text and recent actions. Prefer an untried control. This speculative head does not decide the operation.",
       "ignore": [
         "Invented indices",
         "Already satisfied fields",
@@ -222,7 +224,7 @@
     "instructions": {
       "question": "If the operation is SELECT, which offered target advances the entire goal?",
       "operation": "SELECT",
-      "focus": "Choose only an observed compatible index using field values, nearby text and recent actions. This speculative head does not decide the operation.",
+      "focus": "Choose only an observed compatible index using field values, nearby text and recent actions. Prefer an untried control. This speculative head does not decide the operation.",
       "ignore": [
         "Invented indices",
         "Already satisfied fields",
