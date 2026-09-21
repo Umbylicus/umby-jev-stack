@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "umby-jev-stack",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "description": "Umby Jev skill tree — eleven TypeSafe Jev skills over HTTP, including Speedy Jev (install whole tree or one skill)",
   "author": {
     "name": "Umby",

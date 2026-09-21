@@ -24,7 +24,7 @@ A **skill tree** of [TypeSafe Jev](https://typesafe.ai/) agent skills over HTTP.
 | 7 | [`umby-jev-prompt-screen`](skills/umby-jev-prompt-screen/) | Jailbreak / injection in user text |
 | 8 | [`umby-jev-issue-triage`](skills/umby-jev-issue-triage/) | Issue type + urgency + independent security Noul |
 | 9 | [`umby-jev-docs-drift`](skills/umby-jev-docs-drift/) | Docs claims to verify later |
-| 10 | [`umby-jev-browser`](skills/umby-jev-browser/) | Browser Harness/Chrome — indexed operation/target heads + independent error Nouls |
+| 10 | [`Jev Browse my site`](skills/umby-jev-browser/) | Browser Harness/Chrome — indexed operation/target heads + independent error Nouls |
 | 11 | [`Speedy Jev`](skills/umby-jev-speedy/) | Incremental clutter/performance candidates; ≥ 0.70 list; look-only proposals |
 
 See [`TREE.md`](TREE.md) for install details and how to add skill 12+.
@@ -67,6 +67,10 @@ Verify: `test -n "$JEV_API_KEY" && echo ok` — **do not commit keys.**
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
+## Tree 1.6.1
+
+- Browser display name set to **Jev Browse my site** in SKILL metadata, TREE, README, and marketplace. Folder/plugin id remains `umby-jev-browser`.
 
 ## Tree 1.6.0
 

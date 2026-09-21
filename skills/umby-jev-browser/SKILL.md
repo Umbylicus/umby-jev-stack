@@ -9,6 +9,7 @@ license: MIT
 metadata:
   author: umby
   version: "2.0.0"
+  display_name: Jev Browse my site
   homepage: https://github.com/Umbylicus/umby-jev-stack
   source: https://github.com/Umbylicus/umby-jev-stack/tree/main/skills/umby-jev-browser
   openclaw:
@@ -22,7 +23,7 @@ metadata:
         description: TypeSafe Jev API key from console.typesafe.ai/settings/keys
 ---
 
-# Umby Jev Browser (skill 10)
+# Jev Browse my site (skill 10)
 
 Follow [jev-ultrafast](https://github.com/browser-use/jev-ultrafast): read its
 [agent.py](https://github.com/browser-use/jev-ultrafast/blob/main/jev_ultrafast/agent.py),
