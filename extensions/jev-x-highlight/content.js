@@ -1,27 +1,31 @@
 const seen = new Map();
 let enabled = false;
-let scanning = false;
 let watching = false;
-const queue = [];
-let active = 0;
-const MAX_ACTIVE = 2;
+let rules = { interested: [], notInterested: [] };
 
-chrome.storage.local.get("enabled", (stored) => {
+chrome.storage.local.get(["enabled", "interested", "notInterested"], (stored) => {
   enabled = stored.enabled === true;
+  rules = {
+    interested: stored.interested || [],
+    notInterested: stored.notInterested || []
+  };
   if (enabled) watch();
 });
 
 chrome.storage.onChanged.addListener((changes, area) => {
-  if (area !== "local" || !changes.profile) return;
+  if (area !== "local") return;
+  if (changes.interested) rules.interested = changes.interested.newValue || [];
+  if (changes.notInterested) rules.notInterested = changes.notInterested.newValue || [];
+  if (changes.enabled) enabled = changes.enabled.newValue === true;
   clearMarks();
-  if (enabled) scan();
+  if (enabled) watch();
 });
 
 chrome.runtime.onMessage.addListener((message) => {
   if (message?.type !== "enabled") return;
   enabled = message.enabled === true;
-  if (!enabled) clearMarks();
-  else watch();
+  clearMarks();
+  if (enabled) watch();
 });
 
 function watch() {
@@ -31,53 +35,18 @@ function watch() {
   }
   watching = true;
   scan();
-  const observer = new MutationObserver(() => scan());
-  observer.observe(document.body, { childList: true, subtree: true });
-  const onScroll = () => scan();
-  window.addEventListener("scroll", onScroll, { passive: true });
+  new MutationObserver(() => scan()).observe(document.body, { childList: true, subtree: true });
+  window.addEventListener("scroll", () => scan(), { passive: true });
 }
 
 function scan() {
-  if (!enabled || scanning) return;
-  scanning = true;
-  const articles = document.querySelectorAll('article[data-testid="tweet"]');
-  for (const article of articles) {
+  if (!enabled) return;
+  for (const article of document.querySelectorAll('article[data-testid="tweet"]')) {
     const post = readPost(article);
-    if (!post.id || seen.has(post.id)) continue;
-    if (!inView(article)) continue;
-    seen.set(post.id, "pending");
-    queue.push({ article, post });
-  }
-  scanning = false;
-  drain();
-}
-
-function drain() {
-  while (active < MAX_ACTIVE && queue.length) {
-    const job = queue.shift();
-    if (!job.article.isConnected) {
-      seen.delete(job.post.id);
-      continue;
-    }
-    active += 1;
-    chrome.runtime.sendMessage({ type: "classify", post: job.post }, (result) => {
-      active -= 1;
-      if (chrome.runtime.lastError) {
-        seen.delete(job.post.id);
-        drain();
-        return;
-      }
-      const mark = result?.mark;
-      if (mark === "gold" || mark === "bad") {
-        seen.set(job.post.id, mark);
-        paint(job.article, mark);
-      } else if (mark === "off") {
-        seen.delete(job.post.id);
-      } else {
-        seen.set(job.post.id, "none");
-      }
-      drain();
-    });
+    if (!post.id || seen.has(post.id) || !inView(article)) continue;
+    const mark = classify(post);
+    seen.set(post.id, mark);
+    paint(article, mark);
   }
 }
 
@@ -85,13 +54,26 @@ function readPost(article) {
   const link = article.querySelector('a[href*="/status/"]');
   const id = link?.href?.match(/status\/(\d+)/)?.[1] || "";
   const social = article.querySelector('[data-testid="socialContext"]')?.innerText || "";
+  const text = article.querySelector('[data-testid="tweetText"]')?.innerText || "";
   const promoted = /promoted/i.test(social) || /^\s*ad\s*$/i.test(social.trim());
-  return {
-    id,
-    author: (article.querySelector('[data-testid="User-Name"]')?.innerText || "").slice(0, 200),
-    text: (article.querySelector('[data-testid="tweetText"]')?.innerText || "").slice(0, 2000),
-    promoted
-  };
+  return { id: id || String(text).slice(0, 80), text, promoted };
+}
+
+function hits(text, ids) {
+  const hay = text.toLowerCase();
+  return ids.some((id) => {
+    const category = JEV_CATEGORIES.find((item) => item.id === id);
+    if (!category) return false;
+    return category.words.some((word) => hay.includes(word));
+  });
+}
+
+function classify(post) {
+  const text = post.text || "";
+  const spam = post.promoted || JEV_SPAM.some((word) => text.toLowerCase().includes(word));
+  if (spam || hits(text, rules.notInterested)) return "bad";
+  if (hits(text, rules.interested)) return "gold";
+  return "none";
 }
 
 function inView(article) {
@@ -109,5 +91,4 @@ function clearMarks() {
     article.classList.remove("jev-gold", "jev-bad");
   });
   seen.clear();
-  queue.length = 0;
 }

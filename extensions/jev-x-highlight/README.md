@@ -1,15 +1,15 @@
 # Jev X Highlight
 
-Chrome extension. On X, posts related to the interests you type get a gold outline. Only ads and spam get a red outline with a red X. Other posts stay unmarked. Marks appear as you scroll.
+Chrome extension. Pick interests in the toolbar. Posts about those topics get a gold outline. Topics you mark not interested, plus ads and spam, get a red outline with a red X. Other posts stay unmarked.
 
-Replies are not written. A browser extension cannot use a Grok or Cursor subscription without an API.
+Matching uses the category word lists in this extension. It does not call an API, so a key is not required.
 
 ## Load it
 
 1. Open `chrome://extensions`.
 2. Turn on Developer mode.
 3. Load unpacked and choose this folder: `extensions/jev-x-highlight`.
-4. Click the toolbar icon. Paste your own Jev key, type your interests, and choose Save on this computer. The key never goes in the GitHub repo.
-5. Click Turn on. Posts about those interests turn gold. Only ads and spam get a red X. Click Turn off when you want it to stop.
+4. If it is already loaded, click the reload icon on the card.
+5. Click the toolbar icon. Mark categories Interested or Not interested, then click Turn on.
 
-The key is stored only in Chrome local storage. Do not commit it.
+The choices stay in this browser. They are not saved in the GitHub repo.

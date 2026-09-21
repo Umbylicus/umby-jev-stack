@@ -1,11 +1,10 @@
 {
   "manifest_version": 3,
   "name": "Jev X Highlight",
-  "version": "1.2.0",
-  "description": "Gold outline for useful X posts. Red outline and an X for ads, spam, and posts that are not beneficial.",
+  "version": "1.3.0",
+  "description": "Gold outline for posts in your interests. Red X only for ads, spam, and topics you marked not interested.",
   "permissions": ["storage"],
   "host_permissions": [
-    "https://api.typesafe.ai/*",
     "https://x.com/*",
     "https://twitter.com/*"
   ],
@@ -23,7 +22,7 @@
   "content_scripts": [
     {
       "matches": ["https://x.com/*", "https://twitter.com/*"],
-      "js": ["content.js"],
+      "js": ["categories.js", "content.js"],
       "css": ["highlight.css"],
       "run_at": "document_idle"
     }

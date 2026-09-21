@@ -1,38 +1,55 @@
-const keyInput = document.querySelector("#key");
-const interestsInput = document.querySelector("#interests");
+const list = document.querySelector("#list");
 const turn = document.querySelector("#turn");
 const status = document.querySelector("#status");
+let interested = [];
+let notInterested = [];
+let enabled = false;
 
-function paint(enabled, hasKey) {
+function paint() {
   turn.textContent = enabled ? "Turn off" : "Turn on";
-  status.textContent = hasKey ? (enabled ? "On. Gold follows your interests. Red is only ads and spam." : "Off. Click Turn on.") : "Save your key, then turn it on.";
+  status.textContent = enabled
+    ? `${interested.length} interested, ${notInterested.length} not interested.`
+    : "Off. Pick categories, then turn on.";
+  for (const button of list.querySelectorAll("button")) {
+    const id = button.dataset.id;
+    const side = button.dataset.side;
+    button.classList.toggle("on-in", side === "in" && interested.includes(id));
+    button.classList.toggle("on-out", side === "out" && notInterested.includes(id));
+  }
 }
 
-chrome.storage.local.get(["apiKey", "profile", "enabled"], (stored) => {
-  keyInput.value = stored.apiKey || "";
-  interestsInput.value = stored.profile || "";
-  paint(stored.enabled === true, Boolean(stored.apiKey));
-});
+for (const category of JEV_CATEGORIES) {
+  const row = document.createElement("div");
+  row.className = "row";
+  row.innerHTML = `<span>${category.label}</span><button type="button" data-side="in" data-id="${category.id}">Interested</button><button type="button" data-side="out" data-id="${category.id}">Not interested</button>`;
+  list.appendChild(row);
+}
 
-document.querySelector("#save").addEventListener("click", async () => {
-  const apiKey = keyInput.value.trim();
-  const profile = interestsInput.value.trim();
-  await chrome.storage.local.set({ apiKey, profile });
-  const { enabled } = await chrome.storage.local.get("enabled");
-  paint(enabled === true, Boolean(apiKey));
-  status.textContent = "Saved on this computer.";
+list.addEventListener("click", async (event) => {
+  const button = event.target.closest("button");
+  if (!button) return;
+  const id = button.dataset.id;
+  const side = button.dataset.side;
+  if (side === "in") {
+    interested = interested.includes(id) ? interested.filter((item) => item !== id) : interested.concat(id);
+    notInterested = notInterested.filter((item) => item !== id);
+  } else {
+    notInterested = notInterested.includes(id) ? notInterested.filter((item) => item !== id) : notInterested.concat(id);
+    interested = interested.filter((item) => item !== id);
+  }
+  await chrome.storage.local.set({ interested, notInterested });
+  paint();
 });
 
 turn.addEventListener("click", async () => {
-  const typedKey = keyInput.value.trim();
-  const profile = interestsInput.value.trim();
-  const stored = await chrome.storage.local.get(["enabled", "apiKey"]);
-  const apiKey = typedKey || stored.apiKey || "";
-  if (!apiKey && stored.enabled !== true) {
-    status.textContent = "Save your key first.";
-    return;
-  }
-  const next = stored.enabled !== true;
-  await chrome.storage.local.set({ apiKey, profile, enabled: next });
-  paint(next, Boolean(apiKey));
+  enabled = !enabled;
+  await chrome.storage.local.set({ enabled });
+  paint();
+});
+
+chrome.storage.local.get(["enabled", "interested", "notInterested"], (stored) => {
+  enabled = stored.enabled === true;
+  interested = stored.interested || [];
+  notInterested = stored.notInterested || [];
+  paint();
 });
