@@ -1,0 +1,25 @@
+article[data-testid="tweet"].jev-gold {
+  outline: 3px solid #e0b000;
+  outline-offset: 4px;
+  border-radius: 16px;
+  box-shadow: 0 0 0 6px rgba(224, 176, 0, 0.28);
+}
+
+article[data-testid="tweet"].jev-bad {
+  position: relative;
+  outline: 3px solid #e02424;
+  outline-offset: 4px;
+  border-radius: 16px;
+}
+
+article[data-testid="tweet"].jev-bad::after {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  pointer-events: none;
+  z-index: 5;
+  background:
+    linear-gradient(to top right, transparent calc(50% - 2px), #e02424 calc(50% - 2px), #e02424 calc(50% + 2px), transparent calc(50% + 2px)),
+    linear-gradient(to bottom right, transparent calc(50% - 2px), #e02424 calc(50% - 2px), #e02424 calc(50% + 2px), transparent calc(50% + 2px));
+  opacity: 0.9;
+}

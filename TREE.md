@@ -62,6 +62,7 @@ The whole-tree plugin auto-discovers every immediate child of `skills/`.
 ## Tree 1.6.2
 
 - Jev browse pass 1.0.0 tests only the feature just added in the current work tree. The agent starts the local dev server, directs Jev to click that surface (including fake creates), then lists candidates, numbered real issues, and a matching one-line fix.
+- Jev X Highlight is a Chrome extension in `extensions/jev-x-highlight`. It is not a skill. Gold for useful posts, red with an X for ads, spam, and posts that are not useful.
 
 ## Tree 1.6.1
 

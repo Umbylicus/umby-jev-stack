@@ -65,6 +65,10 @@ Verify: `test -n "$JEV_API_KEY" && echo ok` — **do not commit keys.**
 
 [jev-review MCP](https://github.com/NiazMorshed2007/jev-review) is optional — not required.
 
+## Chrome: Jev X Highlight
+
+[`extensions/jev-x-highlight`](extensions/jev-x-highlight) outlines useful X posts in gold and puts a red X on ads, spam, and posts that are not useful. Load that folder unpacked at `chrome://extensions`. Click the icon to turn it on. The Jev key is entered in the extension options and is not committed.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).

@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Jev X Highlight</title>
+  <style>
+    body { font: 16px/1.4 system-ui, sans-serif; max-width: 640px; margin: 40px auto; padding: 0 16px; color: #111; }
+    label { display: block; font-weight: 650; margin-top: 18px; }
+    input, textarea { width: 100%; box-sizing: border-box; margin-top: 6px; font: inherit; padding: 8px; }
+    textarea { min-height: 120px; }
+    button { margin-top: 18px; font: inherit; padding: 8px 14px; }
+    p { color: #444; }
+  </style>
+</head>
+<body>
+  <h1>Jev X Highlight</h1>
+  <p>Click the toolbar icon on X to turn highlighting on. Gold means the post looks useful. Red with an X means an ad, spam, or a post that is not useful. The key stays in this browser.</p>
+  <label>Jev API key
+    <input id="key" type="password" autocomplete="off">
+  </label>
+  <label>What is useful to you
+    <textarea id="profile"></textarea>
+  </label>
+  <button id="save" type="button">Save</button>
+  <p id="status"></p>
+  <script src="options.js"></script>
+</body>
+</html>
