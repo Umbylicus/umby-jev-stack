@@ -1,0 +1,13 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "umby-jev-browse-pass",
+  "version": "1.0.0",
+  "description": "Jev browse pass — local dev server, Jev clicks only the feature just added, then numbered real issues and matching fixes",
+  "author": {
+    "name": "Umby",
+    "url": "https://github.com/Umbylicus"
+  },
+  "homepage": "https://github.com/Umbylicus/umby-jev-stack",
+  "repository": "https://github.com/Umbylicus/umby-jev-stack",
+  "license": "MIT"
+}

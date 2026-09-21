@@ -17,6 +17,7 @@ This repo is a **skill tree**, not a one-off. Each skill lives in its own folder
 | 9 | `skills/umby-jev-docs-drift/` | `umby-jev-docs-drift` | Flag version/price/API claims — LLM verifies later |
 | 10 | `skills/umby-jev-browser/` | Jev Browse my site (`umby-jev-browser`) | Browser Harness/Chrome — indexed controls, error Nouls, then numbered real issues and a matching one-line fix for each (v2.3.1) |
 | 11 | `skills/umby-jev-speedy/` | Speedy Jev (`umby-jev-speedy`) | Incremental candidate index; four independent Nouls; ≥ 0.70 only; no deletions |
+| 12 | `skills/umby-jev-browse-pass/` | Jev browse pass (`umby-jev-browse-pass`) | After a feature lands, start the local server and have Jev click through only what was added (v1.0.0) |
 
 Add new skills as siblings under `skills/`.
 
@@ -57,6 +58,10 @@ The whole-tree plugin auto-discovers every immediate child of `skills/`.
 - HTTP-first — `POST https://api.typesafe.ai/v1/systemone`, model `jev-latest`
 - Independent Nouls per hunt — **never** a single highest-priority Choice that hides other hits
 - Jev classifies only; confirm/compile agents never edit application code. Human reviews the full list and decides.
+
+## Tree 1.6.2
+
+- Jev browse pass 1.0.0 tests only the feature just added in the current work tree. The agent starts the local dev server, directs Jev to click that surface (including fake creates), then lists candidates, numbered real issues, and a matching one-line fix.
 
 ## Tree 1.6.1
 

@@ -7,7 +7,7 @@
     {
       "name": "umby-jev-stack",
       "description": "Umby Jev skill tree — all skills (install the whole tree)",
-      "version": "1.6.1",
+      "version": "1.6.2",
       "source": "./"
     },
     {
@@ -69,6 +69,12 @@
       "description": "Skill 10: Jev Browse my site — Browser Harness/Chrome, dynamic operation/target heads and independent error Nouls",
       "version": "2.3.1",
       "source": "./skills/umby-jev-browser"
+    },
+    {
+      "name": "umby-jev-browse-pass",
+      "description": "Skill 12: Jev browse pass — local server, Jev clicks only the feature just added, then numbered real issues and matching fixes",
+      "version": "1.0.0",
+      "source": "./skills/umby-jev-browse-pass"
     },
     {
       "name": "umby-jev-speedy",
