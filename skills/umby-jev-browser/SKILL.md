@@ -7,12 +7,13 @@ description: >-
   Known field text is copied from that context with no extra model call. A small
   text model writes TYPE_TEXT only when the string is not already supplied.
   Coverage passes click each visible control once. Compile every noul ≥ 0.5.
-  After the pass, list every candidate, then number only the real issues.
+  After the pass, list every candidate, number only the real issues,
+  then number a one-line fix for each, in the same order.
   No application fixes.
 license: MIT
 metadata:
   author: umby
-  version: "2.3.0"
+  version: "2.3.1"
   display_name: Jev Browse my site
   homepage: https://github.com/Umbylicus/umby-jev-stack
   source: https://github.com/Umbylicus/umby-jev-stack/tree/main/skills/umby-jev-browser
@@ -212,7 +213,7 @@ Do this after the pass, before the reply. Any agent that runs this skill does it
 
 3. A candidate is a real issue only when a normal user on that page would hit a wrong product: a visible, uncovered control does nothing, the page is blank or errors, a request fails for a reason other than missing setup, or the layout hides a primary action such as Save.
 
-4. End the reply in this shape. Number only the real issues, in the order they were found. If none survive, say None.
+4. End the reply in this shape. Number only the real issues, in the order they were found. Under that list, add Fix. Number each fix so 1 matches real issue 1, 2 matches real issue 2, and so on. Each fix is one line: what needs to be done, not a code change or a file edit. If none survive, say None under both headings.
 
 ```
 Candidates
@@ -221,9 +222,16 @@ Candidates
 Real issues
 1. …
 2. …
+
+Fix
+1. …
+2. …
 ```
 
 ```
 Real issues
+None.
+
+Fix
 None.
 ```

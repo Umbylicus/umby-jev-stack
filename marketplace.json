@@ -67,7 +67,7 @@
     {
       "name": "umby-jev-browser",
       "description": "Skill 10: Jev Browse my site — Browser Harness/Chrome, dynamic operation/target heads and independent error Nouls",
-      "version": "2.3.0",
+      "version": "2.3.1",
       "source": "./skills/umby-jev-browser"
     },
     {

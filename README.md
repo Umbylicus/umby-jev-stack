@@ -24,7 +24,7 @@ A **skill tree** of [TypeSafe Jev](https://typesafe.ai/) agent skills over HTTP.
 | 7 | [`umby-jev-prompt-screen`](skills/umby-jev-prompt-screen/) | Jailbreak / injection in user text |
 | 8 | [`umby-jev-issue-triage`](skills/umby-jev-issue-triage/) | Issue type + urgency + independent security Noul |
 | 9 | [`umby-jev-docs-drift`](skills/umby-jev-docs-drift/) | Docs claims to verify later |
-| 10 | [`Jev Browse my site`](skills/umby-jev-browser/) | Browser Harness/Chrome — indexed controls, error Nouls, then a numbered list of real issues only (v2.3.0) |
+| 10 | [`Jev Browse my site`](skills/umby-jev-browser/) | Browser Harness/Chrome — indexed controls, error Nouls, then numbered real issues and a matching one-line fix for each (v2.3.1) |
 | 11 | [`Speedy Jev`](skills/umby-jev-speedy/) | Incremental clutter/performance candidates; ≥ 0.70 list; look-only proposals |
 
 See [`TREE.md`](TREE.md) for install details and how to add skill 12+.
