@@ -11,6 +11,12 @@ chrome.storage.local.get("enabled", (stored) => {
   if (enabled) watch();
 });
 
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area !== "local" || !changes.profile) return;
+  clearMarks();
+  if (enabled) scan();
+});
+
 chrome.runtime.onMessage.addListener((message) => {
   if (message?.type !== "enabled") return;
   enabled = message.enabled === true;

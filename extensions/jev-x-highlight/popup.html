@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Jev X Highlight</title>
+  <style>
+    body { font: 14px/1.35 system-ui, sans-serif; width: 280px; margin: 0; padding: 14px; color: #111; }
+    h1 { font-size: 16px; margin: 0 0 8px; }
+    p { margin: 0 0 10px; color: #444; }
+    label { display: block; font-weight: 650; }
+    input, textarea { width: 100%; box-sizing: border-box; margin: 6px 0 10px; font: inherit; padding: 7px; }
+    textarea { min-height: 72px; }
+    button { width: 100%; font: inherit; padding: 8px; margin-top: 4px; }
+    #turn { font-weight: 700; }
+    #status { min-height: 1.2em; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <h1>Jev X Highlight</h1>
+  <p>Your Jev key stays in this browser. It is not saved in the GitHub repo.</p>
+  <label>Private Jev key
+    <input id="key" type="password" autocomplete="off" placeholder="Paste your key">
+  </label>
+  <label>Your interests
+    <textarea id="interests" placeholder="Plumbing, local SEO, fencing"></textarea>
+  </label>
+  <button id="save" type="button">Save on this computer</button>
+  <button id="turn" type="button">Turn on</button>
+  <p id="status"></p>
+  <script src="popup.js"></script>
+</body>
+</html>

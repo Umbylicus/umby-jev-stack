@@ -1,4 +1,4 @@
-const DEFAULT_PROFILE = "Umby Marketing. Useful posts help a small agency get customers, run a CRM, do local SEO, or operate the business. Ads, spam, politics, engagement bait, and unrelated viral posts are not useful.";
+const DEFAULT_PROFILE = "";
 
 const keyInput = document.querySelector("#key");
 const profileInput = document.querySelector("#profile");

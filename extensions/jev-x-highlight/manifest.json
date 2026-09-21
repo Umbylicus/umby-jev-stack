@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Jev X Highlight",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "Gold outline for useful X posts. Red outline and an X for ads, spam, and posts that are not beneficial.",
   "permissions": ["storage"],
   "host_permissions": [
@@ -13,7 +13,8 @@
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "Jev X Highlight"
+    "default_title": "Jev X Highlight",
+    "default_popup": "popup.html"
   },
   "options_ui": {
     "page": "options.html",
