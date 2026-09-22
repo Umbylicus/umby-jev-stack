@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Jev extension stack</title>
+  <link rel="stylesheet" href="settings.css">
+</head>
+<body>
+  <main class="page">
+    <header class="mast">
+      <img src="icons/umby-logo.png" alt="Umby">
+      <h1>Jev extension stack</h1>
+      <p class="lede">Gold for interests. Red X for ads, spam, and phrases you do not want. Other tools stay off until you turn them on. The toolbar button turns everything on or off.</p>
+    </header>
+    <div class="stack">
+      <section id="sites" class="card" aria-labelledby="sites-label">
+        <p class="kicker" id="sites-label">Sites</p>
+        <p class="intro">These switches gate highlighting and mail. Page tools follow their own switches on any page.</p>
+        <div class="site">
+          <span id="site-x">X</span>
+          <button class="switch" type="button" role="switch" aria-checked="true" data-site="x" aria-labelledby="site-x"></button>
+        </div>
+        <div class="site">
+          <span id="site-facebook">Facebook</span>
+          <button class="switch" type="button" role="switch" aria-checked="false" data-site="facebook" aria-labelledby="site-facebook"></button>
+        </div>
+        <div class="site">
+          <span id="site-instagram">Instagram</span>
+          <button class="switch" type="button" role="switch" aria-checked="false" data-site="instagram" aria-labelledby="site-instagram"></button>
+        </div>
+        <div class="site">
+          <span id="site-youtube">YouTube</span>
+          <button class="switch" type="button" role="switch" aria-checked="false" data-site="youtube" aria-labelledby="site-youtube"></button>
+        </div>
+        <div class="site">
+          <span id="site-reddit">Reddit</span>
+          <button class="switch" type="button" role="switch" aria-checked="false" data-site="reddit" aria-labelledby="site-reddit"></button>
+        </div>
+        <div class="site">
+          <span id="site-linkedin">LinkedIn</span>
+          <button class="switch" type="button" role="switch" aria-checked="false" data-site="linkedin" aria-labelledby="site-linkedin"></button>
+        </div>
+        <div class="site">
+          <span id="site-gmail">Gmail</span>
+          <button class="switch" type="button" role="switch" aria-checked="false" data-site="gmail" aria-labelledby="site-gmail"></button>
+        </div>
+        <div class="site">
+          <span id="site-outlook">Outlook</span>
+          <button class="switch" type="button" role="switch" aria-checked="false" data-site="outlook" aria-labelledby="site-outlook"></button>
+        </div>
+      </section>
+
+      <section id="highlighting" class="card" aria-labelledby="highlighting-label">
+        <p class="kicker" id="highlighting-label">Highlighting</p>
+        <div class="feature">
+          <div>
+            <h2>Highlight posts</h2>
+            <p>Gold outline when a post matches an interest. Red outline and a red X for a non-interest, an ad, or obvious spam.</p>
+          </div>
+          <button class="switch" type="button" role="switch" aria-checked="true" aria-label="Highlight posts" data-feature="highlight"></button>
+          <div class="extra">
+            <div class="block">
+              <h3>Interested</h3>
+              <div class="composer">
+                <input id="interest-input" type="text" autocomplete="off" aria-label="Interested">
+                <button id="interest-add" class="add" type="button">Add</button>
+              </div>
+              <ul class="items" id="interest-list"></ul>
+            </div>
+            <div class="block">
+              <h3>Not interested</h3>
+              <div class="composer">
+                <input id="not-interest-input" type="text" autocomplete="off" aria-label="Not interested">
+                <button id="not-interest-add" class="add" type="button">Add</button>
+              </div>
+              <ul class="items" id="not-interest-list"></ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="social" class="card" aria-labelledby="social-label">
+        <p class="kicker" id="social-label">Social</p>
+        <div class="feature">
+          <div>
+            <h2>Ads</h2>
+            <p>Remove a sponsored card, banner, or Promoted unit. If that would delete a real post, blur it instead.</p>
+          </div>
+          <button class="switch" type="button" role="switch" aria-checked="false" aria-label="Ads" data-feature="ads"></button>
+        </div>
+        <div class="feature">
+          <div>
+            <h2>Focus and declutter</h2>
+            <p>Interest posts stay full size. Red posts collapse to a row with Show. Other posts fade. Trends, suggestions, Shorts, Reels, and extra rails hide. Nothing is deleted.</p>
+          </div>
+          <button class="switch" type="button" role="switch" aria-checked="false" aria-label="Focus and declutter" data-feature="focusDeclutter"></button>
+        </div>
+        <div class="feature">
+          <div>
+            <h2>Always-gold accounts</h2>
+            <p>Posts from these accounts stay gold.</p>
+          </div>
+          <button class="switch" type="button" role="switch" aria-checked="false" aria-label="Always-gold accounts" data-feature="goldAccounts"></button>
+          <div class="extra">
+            <div class="composer">
+              <input id="gold-account-input" type="text" autocomplete="off" aria-label="Always-gold account">
+              <button id="gold-account-add" class="add" type="button">Add</button>
+            </div>
+            <ul class="items" id="gold-account-list"></ul>
+          </div>
+        </div>
+        <div class="feature">
+          <div>
+            <h2>Always-red accounts</h2>
+            <p>Posts from these accounts get the red X.</p>
+          </div>
+          <button class="switch" type="button" role="switch" aria-checked="false" aria-label="Always-red accounts" data-feature="redAccounts"></button>
+          <div class="extra">
+            <div class="composer">
+              <input id="red-account-input" type="text" autocomplete="off" aria-label="Always-red account">
+              <button id="red-account-add" class="add" type="button">Add</button>
+            </div>
+            <ul class="items" id="red-account-list"></ul>
+          </div>
+        </div>
+        <div class="feature">
+          <div>
+            <h2>Session count</h2>
+            <p>Count gold and red posts during this browser session.</p>
+            <p class="meters"><span id="session-gold">0</span> gold · <span id="session-red">0</span> red</p>
+          </div>
+          <button class="switch" type="button" role="switch" aria-checked="false" aria-label="Session count" data-feature="sessionCount"></button>
+        </div>
+        <div class="feature">
+          <div>
+            <h2>Reading list</h2>
+            <p>Save a gold post on this computer and search it here.</p>
+          </div>
+          <button class="switch" type="button" role="switch" aria-checked="false" aria-label="Reading list" data-feature="readingList"></button>
+          <div class="extra">
+            <input id="reading-search" type="search" aria-label="Search reading list">
+            <ul class="items" id="reading-list"></ul>
+          </div>
+        </div>
+        <div class="feature">
+          <div>
+            <h2>Work hours</h2>
+            <p>Highlighting runs only in this window. Off means the clock is ignored.</p>
+          </div>
+          <button class="switch" type="button" role="switch" aria-checked="false" aria-label="Work hours" data-feature="workHours"></button>
+          <div class="extra">
+            <div class="days" role="group" aria-label="Days">
+              <button class="day" type="button" data-day="1" aria-label="Monday" aria-pressed="true">Mon</button>
+              <button class="day" type="button" data-day="2" aria-label="Tuesday" aria-pressed="true">Tue</button>
+              <button class="day" type="button" data-day="3" aria-label="Wednesday" aria-pressed="true">Wed</button>
+              <button class="day" type="button" data-day="4" aria-label="Thursday" aria-pressed="true">Thu</button>
+              <button class="day" type="button" data-day="5" aria-label="Friday" aria-pressed="true">Fri</button>
+              <button class="day" type="button" data-day="6" aria-label="Saturday" aria-pressed="false">Sat</button>
+              <button class="day" type="button" data-day="0" aria-label="Sunday" aria-pressed="false">Sun</button>
+            </div>
+            <div class="times">
+              <label>Start <input id="hours-start" type="time" value="09:00"></label>
+              <label>End <input id="hours-end" type="time" value="17:00"></label>
+            </div>
+          </div>
+        </div>
+        <div class="feature">
+          <div>
+            <h2>Highlight shortcut</h2>
+            <p>Alt+Shift+J turns highlighting on or off.</p>
+            <button id="open-shortcuts" class="quiet" type="button">Keyboard shortcuts</button>
+          </div>
+          <button class="switch" type="button" role="switch" aria-checked="true" aria-label="Highlight shortcut" data-feature="highlightShortcut"></button>
+        </div>
+      </section>
+
+      <section id="mail" class="card" aria-labelledby="mail-label">
+        <p class="kicker" id="mail-label">Mail</p>
+        <div class="feature">
+          <div>
+            <h2>Mail highlight</h2>
+            <p>In Gmail and Outlook, interest mail is gold. Junk, spam, and a non-interest get a red line through the subject. Mail is not deleted.</p>
+          </div>
+          <button class="switch" type="button" role="switch" aria-checked="false" aria-label="Mail highlight" data-feature="mail"></button>
+        </div>
+      </section>
+
+      <section id="page-tools" class="card" aria-labelledby="page-label">
+        <p class="kicker" id="page-label">Page tools</p>
+        <div class="feature">
+          <div>
+            <h2>Draft check</h2>
+            <p>In a compose box, mark a sentence that promises a price, a date, or a refund. Nothing is sent.</p>
+          </div>
+          <button class="switch" type="button" role="switch" aria-checked="false" aria-label="Draft check" data-feature="draftCheck"></button>
+        </div>
+        <div class="feature">
+          <div>
+            <h2>Checkout domain</h2>
+            <p>On a pay page, flag when the header brand does not match the domain.</p>
+          </div>
+          <button class="switch" type="button" role="switch" aria-checked="false" aria-label="Checkout domain" data-feature="checkoutDomain"></button>
+        </div>
+        <div class="feature">
+          <div>
+            <h2>Steps only</h2>
+            <p>On a tutorial, keep the numbered steps and collapse the essay above them.</p>
+          </div>
+          <button class="switch" type="button" role="switch" aria-checked="false" aria-label="Steps only" data-feature="stepsOnly"></button>
+        </div>
+        <div class="feature">
+          <div>
+            <h2>Reject cookies</h2>
+            <p>Outline the reject or essential-only button. It is not clicked.</p>
+          </div>
+          <button class="switch" type="button" role="switch" aria-checked="false" aria-label="Reject cookies" data-feature="rejectCookies"></button>
+        </div>
+        <div class="feature">
+          <div>
+            <h2>Decision line</h2>
+            <p>Select a paragraph for one line with the decision, the owner, and the date.</p>
+          </div>
+          <button class="switch" type="button" role="switch" aria-checked="false" aria-label="Decision line" data-feature="decisionLine"></button>
+        </div>
+        <div class="feature">
+          <div>
+            <h2>Must-haves</h2>
+            <p>On a product page, mark a spec row that fails a requirement you typed.</p>
+          </div>
+          <button class="switch" type="button" role="switch" aria-checked="false" aria-label="Must-haves" data-feature="mustHaves"></button>
+          <div class="extra">
+            <label class="stack-label" for="must-haves">Requirements</label>
+            <textarea id="must-haves" rows="4"></textarea>
+          </div>
+        </div>
+        <div class="feature">
+          <div>
+            <h2>PDF amounts and signatures</h2>
+            <p>In a PDF, outline amounts and signature lines.</p>
+          </div>
+          <button class="switch" type="button" role="switch" aria-checked="false" aria-label="PDF amounts and signatures" data-feature="pdf"></button>
+        </div>
+        <div class="feature">
+          <div>
+            <h2>Job fit</h2>
+            <p>On a job post, what you can do is gold and a missed requirement is red.</p>
+          </div>
+          <button class="switch" type="button" role="switch" aria-checked="false" aria-label="Job fit" data-feature="jobFit"></button>
+          <div class="extra">
+            <label class="stack-label" for="job-can-do">What you can do</label>
+            <textarea id="job-can-do" rows="4"></textarea>
+          </div>
+        </div>
+        <div class="feature">
+          <div>
+            <h2>Help me cancel</h2>
+            <p>Show a Help me cancel button that glows the next cancel control. It does not click.</p>
+          </div>
+          <button class="switch" type="button" role="switch" aria-checked="false" aria-label="Help me cancel" data-feature="helpCancel"></button>
+        </div>
+        <div class="feature">
+          <div>
+            <h2>Answer jump</h2>
+            <p>Type a question about the open article and jump to the section that answers it.</p>
+          </div>
+          <button class="switch" type="button" role="switch" aria-checked="false" aria-label="Answer jump" data-feature="answerJump"></button>
+        </div>
+        <div class="feature">
+          <div>
+            <h2>Duplicate site</h2>
+            <p>If this URL is already open, ignoring tracking parameters, show a card.</p>
+          </div>
+          <button class="switch" type="button" role="switch" aria-checked="false" aria-label="Duplicate site" data-feature="duplicateSite"></button>
+        </div>
+      </section>
+
+      <section id="documents" class="card" aria-labelledby="documents-label">
+        <p class="kicker" id="documents-label">Documents</p>
+        <div class="feature">
+          <div>
+            <h2>Terms card</h2>
+            <p>On a terms or privacy page, list auto-renew, the cancellation window, arbitration, and what data is sold.</p>
+          </div>
+          <button class="switch" type="button" role="switch" aria-checked="false" aria-label="Terms card" data-feature="termsCard"></button>
+        </div>
+        <div class="feature">
+          <div>
+            <h2>Proposal diff</h2>
+            <p>With two proposals or contracts open, list clauses where price, term, or liability changed.</p>
+          </div>
+          <button class="switch" type="button" role="switch" aria-checked="false" aria-label="Proposal diff" data-feature="proposalDiff"></button>
+        </div>
+        <div class="feature">
+          <div>
+            <h2>Fill my info</h2>
+            <p>Show personal fields this profile would fill. A field is written only after you confirm it.</p>
+          </div>
+          <button class="switch" type="button" role="switch" aria-checked="false" aria-label="Fill my info" data-feature="fillInfo"></button>
+          <div class="extra">
+            <p class="note">Saved only on this computer.</p>
+            <div class="fields">
+              <label>Name <input id="profile-name" type="text" autocomplete="name"></label>
+              <label>Email <input id="profile-email" type="text" autocomplete="email"></label>
+              <label>Phone <input id="profile-phone" type="text" autocomplete="tel"></label>
+              <label class="wide">Address <input id="profile-address" type="text" autocomplete="street-address"></label>
+            </div>
+          </div>
+        </div>
+        <div class="feature">
+          <div>
+            <h2>Fill my business</h2>
+            <p>Show business fields this profile would fill. A field is written only after you confirm it.</p>
+          </div>
+          <button class="switch" type="button" role="switch" aria-checked="false" aria-label="Fill my business" data-feature="fillBusiness"></button>
+          <div class="extra">
+            <p class="note">Saved only on this computer.</p>
+            <div class="fields">
+              <label>Name <input id="business-name" type="text" autocomplete="organization"></label>
+              <label>Phone <input id="business-phone" type="text" autocomplete="tel"></label>
+              <label class="wide">Address <input id="business-address" type="text" autocomplete="street-address"></label>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+  <script src="lib/contract.js"></script>
+  <script src="lib/runtime.js"></script>
+  <script src="settings.js"></script>
+</body>
+</html>

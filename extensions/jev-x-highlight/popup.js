@@ -1,55 +1,57 @@
-const list = document.querySelector("#list");
+"use strict";
+
 const turn = document.querySelector("#turn");
-const status = document.querySelector("#status");
-let interested = [];
-let notInterested = [];
-let enabled = false;
+const setup = document.querySelector("#setup");
+let queue = Promise.resolve();
 
-function paint() {
-  turn.textContent = enabled ? "Turn off" : "Turn on";
-  status.textContent = enabled
-    ? `${interested.length} interested, ${notInterested.length} not interested.`
-    : "Off. Pick categories, then turn on.";
-  for (const button of list.querySelectorAll("button")) {
-    const id = button.dataset.id;
-    const side = button.dataset.side;
-    button.classList.toggle("on-in", side === "in" && interested.includes(id));
-    button.classList.toggle("on-out", side === "out" && notInterested.includes(id));
+function paint(state) {
+  const on = !!state.enabled;
+  turn.textContent = on ? "Turn off" : "Turn on";
+  turn.classList.toggle("is-on", on);
+  turn.setAttribute("aria-pressed", on ? "true" : "false");
+  for (const button of document.querySelectorAll("[data-site]")) {
+    const checked = !!(state.sites && state.sites[button.dataset.site]);
+    button.setAttribute("aria-checked", checked ? "true" : "false");
   }
 }
 
-for (const category of JEV_CATEGORIES) {
-  const row = document.createElement("div");
-  row.className = "row";
-  row.innerHTML = `<span>${category.label}</span><button type="button" data-side="in" data-id="${category.id}">Interested</button><button type="button" data-side="out" data-id="${category.id}">Not interested</button>`;
-  list.appendChild(row);
+function update(mutate) {
+  queue = queue.then(async () => {
+    const next = JEV.mergeState(await chrome.storage.local.get(null));
+    mutate(next);
+    await chrome.storage.local.set(next);
+    paint(next);
+  }).catch(() => {});
 }
 
-list.addEventListener("click", async (event) => {
-  const button = event.target.closest("button");
-  if (!button) return;
-  const id = button.dataset.id;
-  const side = button.dataset.side;
-  if (side === "in") {
-    interested = interested.includes(id) ? interested.filter((item) => item !== id) : interested.concat(id);
-    notInterested = notInterested.filter((item) => item !== id);
-  } else {
-    notInterested = notInterested.includes(id) ? notInterested.filter((item) => item !== id) : notInterested.concat(id);
-    interested = interested.filter((item) => item !== id);
-  }
-  await chrome.storage.local.set({ interested, notInterested });
-  paint();
+function refresh() {
+  queue = queue.then(async () => {
+    paint(JEV.mergeState(await chrome.storage.local.get(null)));
+  }).catch(() => {});
+}
+
+turn.addEventListener("click", () => {
+  update((next) => {
+    next.enabled = !next.enabled;
+  });
 });
 
-turn.addEventListener("click", async () => {
-  enabled = !enabled;
-  await chrome.storage.local.set({ enabled });
-  paint();
+for (const button of document.querySelectorAll("[data-site]")) {
+  button.addEventListener("click", () => {
+    const id = button.dataset.site;
+    update((next) => {
+      next.sites[id] = !next.sites[id];
+    });
+  });
+}
+
+setup.addEventListener("click", () => {
+  chrome.runtime.openOptionsPage();
 });
 
-chrome.storage.local.get(["enabled", "interested", "notInterested"], (stored) => {
-  enabled = stored.enabled === true;
-  interested = stored.interested || [];
-  notInterested = stored.notInterested || [];
-  paint();
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area !== "local") return;
+  refresh();
 });
+
+refresh();

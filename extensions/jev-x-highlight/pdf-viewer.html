@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PDF</title>
+  <link rel="stylesheet" href="highlight.css">
+  <style>
+    body { margin: 0; background: #fbf8f3; color: #1d1a16; }
+    #jev-pdf-app { padding: 16px; }
+    #jev-pdf-toolbar { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; }
+    .jev-pdf-page { position: relative; margin: 0 auto 16px; }
+    .textLayer { position: absolute; left: 0; top: 0; right: 0; bottom: 0; overflow: hidden; line-height: 1; }
+    .textLayer span { position: absolute; white-space: pre; color: transparent; transform-origin: 0 0; }
+  </style>
+</head>
+<body>
+  <main id="jev-pdf-app"></main>
+  <script src="lib/contract.js"></script>
+  <script src="lib/runtime.js"></script>
+  <script src="lib/url.js"></script>
+  <script src="page/pdf.js"></script>
+  <script src="pdf-viewer.js"></script>
+</body>
+</html>

@@ -1,25 +1,165 @@
-article[data-testid="tweet"].jev-gold {
-  outline: 3px solid #e0b000;
-  outline-offset: 4px;
-  border-radius: 16px;
-  box-shadow: 0 0 0 6px rgba(224, 176, 0, 0.28);
+.jev-gold {
+  outline: 3px solid #d4a017 !important;
+  outline-offset: 3px;
+  border-radius: 12px;
 }
 
-article[data-testid="tweet"].jev-bad {
-  position: relative;
-  outline: 3px solid #e02424;
-  outline-offset: 4px;
-  border-radius: 16px;
+.jev-bad {
+  outline: 3px solid #d21f1f !important;
+  outline-offset: 3px;
+  border-radius: 12px;
 }
 
-article[data-testid="tweet"].jev-bad::after {
-  content: "";
+.jev-x {
   position: absolute;
-  inset: 8px;
+  z-index: 2147483000;
+  top: 6px;
+  right: 6px;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: #d21f1f;
+  color: #fff;
+  font: 700 16px/28px "Avenir Next", "Segoe UI", sans-serif;
+  text-align: center;
   pointer-events: none;
-  z-index: 5;
-  background:
-    linear-gradient(to top right, transparent calc(50% - 2px), #e02424 calc(50% - 2px), #e02424 calc(50% + 2px), transparent calc(50% + 2px)),
-    linear-gradient(to bottom right, transparent calc(50% - 2px), #e02424 calc(50% - 2px), #e02424 calc(50% + 2px), transparent calc(50% + 2px));
-  opacity: 0.9;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+
+.jev-faded {
+  opacity: 0.38 !important;
+}
+
+.jev-collapsed {
+  max-height: 36px !important;
+  overflow: hidden !important;
+  position: relative !important;
+}
+
+.jev-show,
+.jev-save,
+.jev-card button,
+.jev-fill-row button {
+  font: 600 13px/1 "Avenir Next", "Segoe UI", sans-serif;
+  border: 0;
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: #1d1a16;
+  color: #fbf8f3;
+  cursor: pointer;
+}
+
+.jev-show {
+  position: absolute;
+  z-index: 2147483000;
+  top: 4px;
+  left: 8px;
+}
+
+.jev-save {
+  position: absolute;
+  z-index: 2147483000;
+  top: 6px;
+  left: 8px;
+  background: #8a6a12;
+}
+
+.jev-hide {
+  display: none !important;
+}
+
+.jev-blur {
+  filter: blur(8px) !important;
+}
+
+.jev-subject-strike {
+  text-decoration: line-through !important;
+  color: #d21f1f !important;
+}
+
+.jev-glow {
+  outline: 3px solid #2f9d6a !important;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 6px rgba(47, 157, 106, 0.28), 0 0 18px rgba(47, 157, 106, 0.85) !important;
+  border-radius: 8px;
+}
+
+.jev-reject {
+  outline: 3px solid #d4a017 !important;
+  outline-offset: 4px;
+  box-shadow: 0 0 0 4px rgba(212, 160, 23, 0.25);
+  border-radius: 8px;
+}
+
+.jev-fail {
+  outline: 2px solid #d21f1f !important;
+  background: rgba(210, 31, 31, 0.08) !important;
+}
+
+.jev-pass {
+  outline: 2px solid #d4a017 !important;
+  background: rgba(212, 160, 23, 0.12) !important;
+}
+
+::highlight(jev-draft) {
+  background-color: #f3d36a;
+  color: #1d1a16;
+}
+
+.jev-card {
+  position: fixed;
+  z-index: 2147483646;
+  right: 16px;
+  bottom: 16px;
+  width: min(380px, calc(100vw - 32px));
+  max-height: min(70vh, 520px);
+  overflow: auto;
+  box-sizing: border-box;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: #fbf8f3;
+  color: #1d1a16;
+  border: 1px solid #e3d9cc;
+  box-shadow: 0 12px 40px rgba(40, 30, 10, 0.16);
+  font: 14px/1.45 "Avenir Next", "Segoe UI", sans-serif;
+}
+
+.jev-card h2,
+.jev-card p {
+  margin: 0 0 8px;
+}
+
+.jev-card h2 {
+  font: 600 15px/1.3 Palatino, Georgia, serif;
+}
+
+.jev-card ul {
+  margin: 0 0 8px;
+  padding-left: 18px;
+}
+
+.jev-card .jev-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.jev-anchor {
+  position: relative !important;
+}
+
+#jev-help-cancel {
+  position: fixed;
+  z-index: 2147483646;
+  left: 16px;
+  bottom: 16px;
+  font: 600 14px/1 "Avenir Next", "Segoe UI", sans-serif;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: #1d1a16;
+  color: #fbf8f3;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(40, 30, 10, 0.18);
 }

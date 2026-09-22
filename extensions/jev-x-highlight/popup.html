@@ -1,29 +1,51 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Jev X Highlight</title>
-  <style>
-    body { font: 13px/1.3 system-ui, sans-serif; width: 320px; margin: 0; padding: 12px; color: #111; }
-    h1 { font-size: 16px; margin: 0 0 6px; }
-    p { margin: 0 0 8px; color: #444; }
-    button { font: inherit; }
-    #turn { width: 100%; font-weight: 700; padding: 8px; margin-bottom: 8px; }
-    .list { max-height: 360px; overflow: auto; border: 1px solid #ddd; border-radius: 8px; }
-    .row { display: grid; grid-template-columns: 1fr auto auto; gap: 4px; align-items: center; padding: 4px 6px; border-bottom: 1px solid #eee; }
-    .row button { padding: 3px 6px; }
-    .row button.on-in { background: #e0b000; border-color: #e0b000; }
-    .row button.on-out { background: #e02424; color: #fff; border-color: #e02424; }
-    #status { min-height: 1.2em; margin: 8px 0 0; }
-  </style>
+  <title>Jev extension stack</title>
+  <link rel="stylesheet" href="popup.css">
 </head>
 <body>
-  <h1>Jev X Highlight</h1>
-  <p>Interested posts turn gold. Not interested, ads, and spam get a red X. Nothing else is marked.</p>
-  <button id="turn" type="button">Turn on</button>
-  <div id="list" class="list"></div>
-  <p id="status"></p>
-  <script src="categories.js"></script>
+  <img src="icons/umby-logo.png" alt="Umby">
+  <h1>Jev extension stack</h1>
+  <button id="turn" type="button" aria-pressed="false">Turn on</button>
+  <div class="sites">
+    <div class="site">
+      <span id="site-x">X</span>
+      <button class="switch" type="button" role="switch" aria-checked="true" data-site="x" aria-labelledby="site-x"></button>
+    </div>
+    <div class="site">
+      <span id="site-facebook">Facebook</span>
+      <button class="switch" type="button" role="switch" aria-checked="false" data-site="facebook" aria-labelledby="site-facebook"></button>
+    </div>
+    <div class="site">
+      <span id="site-instagram">Instagram</span>
+      <button class="switch" type="button" role="switch" aria-checked="false" data-site="instagram" aria-labelledby="site-instagram"></button>
+    </div>
+    <div class="site">
+      <span id="site-youtube">YouTube</span>
+      <button class="switch" type="button" role="switch" aria-checked="false" data-site="youtube" aria-labelledby="site-youtube"></button>
+    </div>
+    <div class="site">
+      <span id="site-reddit">Reddit</span>
+      <button class="switch" type="button" role="switch" aria-checked="false" data-site="reddit" aria-labelledby="site-reddit"></button>
+    </div>
+    <div class="site">
+      <span id="site-linkedin">LinkedIn</span>
+      <button class="switch" type="button" role="switch" aria-checked="false" data-site="linkedin" aria-labelledby="site-linkedin"></button>
+    </div>
+    <div class="site">
+      <span id="site-gmail">Gmail</span>
+      <button class="switch" type="button" role="switch" aria-checked="false" data-site="gmail" aria-labelledby="site-gmail"></button>
+    </div>
+    <div class="site">
+      <span id="site-outlook">Outlook</span>
+      <button class="switch" type="button" role="switch" aria-checked="false" data-site="outlook" aria-labelledby="site-outlook"></button>
+    </div>
+  </div>
+  <button id="setup" type="button">Setup</button>
+  <script src="lib/contract.js"></script>
+  <script src="lib/runtime.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

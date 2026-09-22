@@ -1,29 +1,70 @@
 {
   "manifest_version": 3,
-  "name": "Jev X Highlight",
-  "version": "1.3.0",
-  "description": "Gold outline for posts in your interests. Red X only for ads, spam, and topics you marked not interested.",
-  "permissions": ["storage"],
-  "host_permissions": [
-    "https://x.com/*",
-    "https://twitter.com/*"
-  ],
+  "name": "Jev extension stack",
+  "version": "2.0.0",
+  "description": "Gold for interests. Red X for ads, spam, and phrases you do not want. Other tools stay off until you turn them on.",
+  "permissions": ["storage", "tabs", "scripting"],
+  "host_permissions": ["http://*/*", "https://*/*"],
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
   "background": {
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "Jev X Highlight",
-    "default_popup": "popup.html"
+    "default_title": "Jev extension stack",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
   },
   "options_ui": {
-    "page": "options.html",
+    "page": "settings.html",
     "open_in_tab": true
+  },
+  "commands": {
+    "toggle-highlight": {
+      "suggested_key": {
+        "default": "Alt+Shift+J",
+        "mac": "Alt+Shift+J"
+      },
+      "description": "Turn highlighting on or off"
+    }
   },
   "content_scripts": [
     {
-      "matches": ["https://x.com/*", "https://twitter.com/*"],
-      "js": ["categories.js", "content.js"],
+      "matches": ["http://*/*", "https://*/*"],
       "css": ["highlight.css"],
+      "js": [
+        "lib/contract.js",
+        "lib/runtime.js",
+        "lib/match.js",
+        "lib/url.js",
+        "social/content.js",
+        "mail/content.js",
+        "page/draft.js",
+        "page/checkout.js",
+        "page/steps.js",
+        "page/cookies.js",
+        "page/decision.js",
+        "page/musthaves.js",
+        "page/pdf.js",
+        "page/jobfit.js",
+        "page/cancel.js",
+        "page/answer.js",
+        "page/duplicate.js",
+        "page/content.js",
+        "docs/terms.js",
+        "docs/proposal.js",
+        "docs/fill.js",
+        "docs/content.js"
+      ],
       "run_at": "document_idle"
     }
   ]

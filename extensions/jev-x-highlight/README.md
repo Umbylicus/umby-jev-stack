@@ -1,15 +1,16 @@
-# Jev X Highlight
+# Jev extension stack
 
-Chrome extension. Pick interests in the toolbar. Posts about those topics get a gold outline. Topics you mark not interested, plus ads and spam, get a red outline with a red X. Other posts stay unmarked.
+Gold for interests. A red X for ads, spam, and phrases you do not want. Other tools stay off until you turn them on.
 
-Matching uses the category word lists in this extension. It does not call an API, so a key is not required.
+Phrases live only in chrome.storage. There is no API call while scrolling, and there is no key to enter.
 
-## Load it
+## Load
 
 1. Open `chrome://extensions`.
 2. Turn on Developer mode.
-3. Load unpacked and choose this folder: `extensions/jev-x-highlight`.
-4. If it is already loaded, click the reload icon on the card.
-5. Click the toolbar icon. Mark categories Interested or Not interested, then click Turn on.
+3. Choose Load unpacked and select the folder `extensions/jev-x-highlight`.
+4. If it is already loaded, click Reload.
 
-The choices stay in this browser. They are not saved in the GitHub repo.
+## Popup
+
+The popup is Turn on / Turn off, which sites are on, and Setup. Setup opens the settings tab. Alt+Shift+J turns highlighting on or off when that shortcut is left on.
