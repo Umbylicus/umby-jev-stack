@@ -72,7 +72,7 @@ test("settings page has every feature switch, every site switch, and the logo", 
     "session-gold", "session-red", "hours-start", "hours-end",
     "profile-name", "profile-email", "profile-phone", "profile-address",
     "business-name", "business-phone", "business-address",
-    "must-haves", "job-can-do"
+    "must-haves", "job-can-do", "api-key"
   ]) {
     assert.ok(html.includes(`id="${id}"`), id);
   }
@@ -96,7 +96,8 @@ test("popup is only the master switch, sites, and Setup", () => {
 test("copy does not ask for an API key or ship a fixed interest catalog", () => {
   const extensionReadme = read("README.md");
   const rootReadme = fs.readFileSync(path.join(root, "..", "..", "README.md"), "utf8");
-  assert.doesNotMatch(extensionReadme, /API key/i);
+  assert.match(extensionReadme, /not in this repo/i);
+  assert.doesNotMatch(extensionReadme, /sk-|JEV_API_KEY=/);
   assert.match(extensionReadme, /Jev extension stack/);
   assert.match(rootReadme, /Jev extension stack/);
   assert.doesNotMatch(rootReadme, /Jev key is entered/);

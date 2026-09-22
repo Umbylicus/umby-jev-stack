@@ -74,6 +74,7 @@
     };
     state.mustHaveText = String(source.mustHaveText || "");
     state.jobCanDo = String(source.jobCanDo || "");
+    state.apiKey = String(source.apiKey || "");
     return state;
   }
 

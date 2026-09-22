@@ -2,7 +2,7 @@
 
 Gold for interests. A red X for ads, spam, and phrases you do not want. Other tools stay off until you turn them on.
 
-Phrases live only in chrome.storage. There is no API call while scrolling, and there is no key to enter.
+Phrases live only in chrome.storage. Setup has a field for the Jev API key. That key stays in chrome.storage on this computer and is not in this repo. Highlighting does not send it while you scroll.
 
 ## Load
 

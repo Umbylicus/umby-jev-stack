@@ -22,6 +22,7 @@ test("defaults keep noisy tools off and X highlighting ready", () => {
   assert.deepEqual(state.notInterests, []);
   assert.equal(state.profile.email, "");
   assert.equal(state.business.name, "");
+  assert.equal(state.apiKey, "");
 });
 
 test("master off stops every feature and a site off stays off", () => {
@@ -83,6 +84,11 @@ test("turning highlight off stops marks even inside work hours", () => {
     features: { highlight: false, workHours: false }
   });
   assert.equal(runtime.marksActive(state, new Date(2026, 8, 21, 12, 0, 0)), false);
+});
+
+test("the api key stays on the saved state and defaults empty", () => {
+  assert.equal(runtime.mergeState({ apiKey: "local-only" }).apiKey, "local-only");
+  assert.equal(runtime.mergeState({}).apiKey, "");
 });
 
 test("phrase lists drop blanks and duplicates", () => {

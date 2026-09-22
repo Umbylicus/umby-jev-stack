@@ -91,6 +91,7 @@ h1 {
   border-top: 1px solid #efe7dc;
 }
 
+#key h2,
 .feature h2 {
   margin: 0 0 4px;
   font-size: 16px;
@@ -152,6 +153,7 @@ h3 {
 .composer input { flex: 1 1 auto; min-width: 0; }
 
 input[type="text"],
+input[type="password"],
 input[type="search"],
 input[type="time"],
 textarea {
@@ -281,6 +283,7 @@ textarea {
 
 .times label,
 .fields label,
+#key label,
 .stack-label {
   display: grid;
   gap: 4px;

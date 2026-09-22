@@ -122,6 +122,7 @@ function paintFields() {
   setIfIdle("business-name", state.business.name);
   setIfIdle("business-phone", state.business.phone);
   setIfIdle("business-address", state.business.address);
+  setIfIdle("api-key", state.apiKey);
 }
 
 function paint() {
@@ -244,6 +245,7 @@ bindText("profile-address", (next, value) => { next.profile.address = value; });
 bindText("business-name", (next, value) => { next.business.name = value; });
 bindText("business-phone", (next, value) => { next.business.phone = value; });
 bindText("business-address", (next, value) => { next.business.address = value; });
+bindText("api-key", (next, value) => { next.apiKey = value; });
 
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area === "session" && changes.jevCounts) {

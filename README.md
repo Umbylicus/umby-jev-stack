@@ -67,7 +67,7 @@ Verify: `test -n "$JEV_API_KEY" && echo ok` — **do not commit keys.**
 
 ## Chrome: Jev extension stack
 
-[`extensions/jev-x-highlight`](extensions/jev-x-highlight) is one extension. Gold for interests. A red X for ads, spam, and phrases you do not want. Other tools stay off until you turn them on. Load that folder unpacked at `chrome://extensions` (Developer mode, Load unpacked). The popup is Turn on / Turn off, which sites are on, and Setup. Phrases stay in chrome.storage on this computer. Scrolling makes no network call, and the extension does not ask for a key.
+[`extensions/jev-x-highlight`](extensions/jev-x-highlight) is one extension. Gold for interests. A red X for ads, spam, and phrases you do not want. Other tools stay off until you turn them on. Load that folder unpacked at `chrome://extensions` (Developer mode, Load unpacked). The popup is Turn on / Turn off, which sites are on, and Setup. Phrases and the API key stay in chrome.storage on this computer. Scrolling makes no network call. The key is not committed.
 
 ## License
 

@@ -129,7 +129,8 @@
     profile: { name: "", email: "", phone: "", address: "" },
     business: { name: "", phone: "", address: "" },
     mustHaveText: "",
-    jobCanDo: ""
+    jobCanDo: "",
+    apiKey: ""
   };
 
   const MSG = {
