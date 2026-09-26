@@ -19,8 +19,9 @@ This repo is a **skill tree**, not a one-off. Each skill lives in its own folder
 | 11 | `skills/umby-jev-speedy/` | Speedy Jev (`umby-jev-speedy`) | Incremental candidate index; four independent Nouls; ≥ 0.70 only; no deletions |
 | 12 | `skills/umby-jev-browse-pass/` | Jev browse pass (`umby-jev-browse-pass`) | After a feature lands, start the local server and have Jev click through only what was added (v1.0.0) |
 | 13 | `skills/umby-jev-do/` | Jev Do this (`umby-jev-do`) | Same indexed-control loop as Jev Browse my site, for one named task (Google search, X or Facebook post, any site task); publish, send, or pay only when explicitly asked (v1.0.0) |
+| 14 | `skills/umby-jev-link/` | Jev Link my site (`umby-jev-link`) | Sitemap-first crawl (≤500), TF-IDF shortlist, one frozen Choice + `no_link`; ≥ 0.70 suggestions; look-only CSV/JSON + implement-as-PR notes (v1.0.0) |
 
-Add new skills as siblings under `skills/`.
+Add new skills as siblings under `skills/`. To add skill 15+, follow the steps below.
 
 ## Install the whole tree
 
@@ -59,6 +60,10 @@ The whole-tree plugin auto-discovers every immediate child of `skills/`.
 - HTTP-first — `POST https://api.typesafe.ai/v1/systemone`, model `jev-latest`
 - Independent Nouls per hunt — **never** a single highest-priority Choice that hides other hits
 - Jev classifies only; confirm/compile agents never edit application code. Human reviews the full list and decides.
+
+## Tree 1.7.0
+
+- Jev Link my site 1.0.0 (`umby-jev-link`) finds internal-link opportunities on a live small-business site. Sitemap first, same-host crawl fallback, 500-page cap. Jev chooses among a shortlist plus `no_link`. Suggestions need confidence ≥ 0.70. Anchor text is chosen outside Jev. Outputs CSV, JSON, and implement-as-PR notes. The skill never edits the site.
 
 ## Tree 1.6.3
 

@@ -3,3 +3,6 @@
 *.pem
 .DS_Store
 node_modules/
+skills/umby-jev-link/out/
+skills/umby-jev-link/output/
+**/.jev-link-out/

@@ -1,0 +1,13 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "umby-jev-link",
+  "version": "1.0.0",
+  "description": "Jev Link my site — sitemap-first inventory of indexable pages, TF-IDF shortlist, one frozen Choice plus no_link; ≥ 0.70 look-only suggestions",
+  "author": {
+    "name": "Umby",
+    "url": "https://github.com/Umbylicus"
+  },
+  "homepage": "https://github.com/Umbylicus/umby-jev-stack",
+  "repository": "https://github.com/Umbylicus/umby-jev-stack",
+  "license": "MIT"
+}
