@@ -11,7 +11,7 @@ A **skill tree** of [TypeSafe Jev](https://typesafe.ai/) agent skills over HTTP.
 3. **Set `JEV_API_KEY`** — exact name, case-sensitive.
 4. **Prompt your agent** — e.g. *"Run umby-jev-review on this repo. Use frozen questions. Compile every finding."*
 
-## Skill tree (13 skills)
+## Skill tree (14 skills)
 
 | # | Skill | Use when |
 | --- | --- | --- |
@@ -28,8 +28,9 @@ A **skill tree** of [TypeSafe Jev](https://typesafe.ai/) agent skills over HTTP.
 | 11 | [`Speedy Jev`](skills/umby-jev-speedy/) | Incremental clutter/performance candidates; ≥ 0.70 list; look-only proposals |
 | 12 | [`Jev browse pass`](skills/umby-jev-browse-pass/) | Local server, then Jev clicks only the feature just added; numbered real issues and matching fixes (v1.0.0) |
 | 13 | [`Jev Do this`](skills/umby-jev-do/) | Chrome with Jev finishes one task you name: Google search, X or Facebook post, any site task; publish/send/pay only when asked (v1.0.0) |
+| 14 | [`Jev Link my site`](skills/umby-jev-link/) | Live site URL → indexable pages → Jev picks internal-link targets; CSV/JSON + implement notes; never edits the site (v1.0.0) |
 
-See [`TREE.md`](TREE.md) for install details and how to add skill 14+.
+See [`TREE.md`](TREE.md) for install details and how to add skill 15+.
 
 ## Install
 
@@ -73,6 +74,10 @@ Verify: `test -n "$JEV_API_KEY" && echo ok` — **do not commit keys.**
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
+## Tree 1.7.0
+
+- Jev Link my site 1.0.0 (`umby-jev-link`) finds internal-link opportunities on a live small-business site. Sitemap first, same-host crawl fallback, 500-page cap. Jev chooses among a shortlist plus `no_link`. Suggestions need confidence ≥ 0.70. Anchor text is chosen outside Jev. Outputs CSV, JSON, and implement-as-PR notes. The skill never edits the site.
 
 ## Tree 1.6.1
 
