@@ -63,7 +63,8 @@ ${urls}
 function send(res, status, type, body) {
   res.writeHead(status, {
     "Content-Type": type,
-    "Cache-Control": "no-store"
+    "Cache-Control": "no-store",
+    Connection: "close"
   });
   res.end(body);
 }
@@ -79,7 +80,7 @@ export function startFixtureServer(port = 0) {
     const pathname = url.pathname === "/" ? "/index.html" : url.pathname;
 
     if (REDIRECTS[url.pathname]) {
-      res.writeHead(301, { Location: REDIRECTS[url.pathname] });
+      res.writeHead(301, { Location: REDIRECTS[url.pathname], Connection: "close" });
       res.end();
       return;
     }
@@ -123,6 +124,9 @@ export function startFixtureServer(port = 0) {
         url,
         origin: `http://127.0.0.1:${address.port}`,
         close: () => new Promise((done, fail) => {
+          if (typeof server.closeAllConnections === "function") {
+            server.closeAllConnections();
+          }
           server.close((error) => (error ? fail(error) : done()));
         })
       });

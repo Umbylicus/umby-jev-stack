@@ -38,7 +38,7 @@ const skillDir = path.dirname(fileURLToPath(new URL("../link.mjs", import.meta.u
 test("tracking params are dropped and hosts compare without www", () => {
   assert.equal(
     normalizeUrl("https://WWW.Example.com/drain/?utm_source=x&fbclid=1&b=2&a=1#top"),
-    "https://example.com/drain?a=1&b=2"
+    "https://www.example.com/drain?a=1&b=2"
   );
   assert.equal(sameHost("https://www.example.com/a", "https://example.com/b"), true);
   assert.equal(sameHost("https://other.test/a", "https://example.com/a"), false);
@@ -147,6 +147,12 @@ test("anchor is a passage phrase that overlaps the target", () => {
   );
   assert.match(anchor.toLowerCase(), /drain cleaning/);
   assert.equal(BAD_ANCHOR_SAFE(anchor), false);
+  const long = suggestAnchor(
+    "Popping often means sediment has built up and a water heater replacement may be cheaper.",
+    { title: "Water Heater Repair and Replacement", headings: "Water heater repair" }
+  );
+  assert.match(long.toLowerCase(), /water heater replacement/);
+  assert.equal(/^up\b/i.test(long), false);
 });
 
 function BAD_ANCHOR_SAFE(value) {

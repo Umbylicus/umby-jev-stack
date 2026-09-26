@@ -88,11 +88,13 @@ test("CLI --fixture dry-run exits 0 without JEV_API_KEY", () => {
   const outDir = fs.mkdtempSync(path.join(os.tmpdir(), "jev-link-cli-"));
   const env = { ...process.env };
   delete env.JEV_API_KEY;
+  const started = Date.now();
   const result = spawnSync(process.execPath, [path.join(skillDir, "link.mjs"), "--fixture", "--out", outDir], {
     encoding: "utf8",
     env
   });
   assert.equal(result.status, 0, result.stderr || result.stdout);
+  assert.ok(Date.now() - started < 4000);
   assert.match(result.stdout, /suggestions/);
   assert.equal(result.stdout.toLowerCase().includes("sk-"), false);
   assert.equal(fs.existsSync(path.join(outDir, "links.csv")), true);

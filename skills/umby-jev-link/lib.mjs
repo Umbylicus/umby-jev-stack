@@ -75,6 +75,14 @@ export function normalizeUrl(href, base) {
   return u.href;
 }
 
+export function urlKey(href, base) {
+  const normalized = normalizeUrl(href, base);
+  if (!normalized) return "";
+  const parsed = new URL(normalized);
+  parsed.hostname = stripWww(parsed.hostname);
+  return parsed.href;
+}
+
 export function isHomeUrl(url) {
   try {
     const { pathname } = new URL(url);
@@ -292,8 +300,8 @@ export function rankTargets(passage, source, pages, limit = SHORTLIST_SIZE) {
   const queryTokens = tokenize(`${passage.heading_path} ${passage.text}`);
   const eligible = [];
   for (const page of pages) {
-    if (page.url === source.url) continue;
-    if (source.internal_links.includes(page.url)) continue;
+    if (urlKey(page.url) === urlKey(source.url)) continue;
+    if (source.internal_links.some((href) => urlKey(href) === urlKey(page.url))) continue;
     const role = pageRole(page);
     if (role === "utility") continue;
     eligible.push(page);
@@ -340,7 +348,10 @@ export function suggestAnchor(passageText, target) {
       if (!tokens.length) continue;
       const overlap = tokens.filter((token) => targetTerms.has(token)).length;
       if (!overlap) continue;
-      const score = overlap / tokens.length + overlap * 0.2 + n * 0.02;
+      const lead = words[i].toLowerCase().replace(/[.,;:!?]+$/g, "");
+      const startsWithTarget = targetTerms.has(tokens[0]);
+      const startsWithFiller = STOP.has(lead) || /^(up|and|or|a|an|the|to|of|for)$/.test(lead);
+      const score = overlap / tokens.length + overlap * 0.2 + n * 0.02 + (startsWithTarget ? 0.18 : 0) - (startsWithFiller ? 0.25 : 0);
       if (score > bestScore) {
         bestScore = score;
         best = phrase;
@@ -480,12 +491,17 @@ function isXmlContentType(value) {
 export async function readBody(res, timeout = FETCH_TIMEOUT_MS) {
   if (!res) return "";
   if (typeof res.text !== "function") return "";
-  return Promise.race([
-    res.text(),
-    new Promise((_, reject) => {
-      setTimeout(() => reject(new Error("body timeout")), timeout);
-    })
-  ]);
+  let timer;
+  try {
+    return await Promise.race([
+      res.text(),
+      new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error("body timeout")), timeout);
+      })
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
 }
 
 export async function discoverSitemapUrls(startUrl, { fetchImpl = fetch, maxPages = PAGE_CAP } = {}) {
@@ -537,7 +553,7 @@ export async function discoverSitemapUrls(startUrl, { fetchImpl = fetch, maxPage
     for (const loc of parsed.urls) {
       const url = normalizeUrl(loc, origin);
       if (!url || !sameHost(url, startUrl)) continue;
-      if (found.includes(url)) continue;
+      if (found.some((item) => urlKey(item) === urlKey(url))) continue;
       found.push(url);
       if (found.length >= maxPages) break;
     }
@@ -626,7 +642,7 @@ export function isIndexable(record, pageUrl) {
     return { ok: false, reason: "noindex_header" };
   }
   if (record.page.noindex) return { ok: false, reason: "noindex" };
-  if (record.page.canonical && normalizeUrl(record.page.canonical) !== normalizeUrl(pageUrl)) {
+  if (record.page.canonical && urlKey(record.page.canonical) !== urlKey(pageUrl)) {
     return { ok: false, reason: "canonical_elsewhere" };
   }
   return { ok: true, reason: "indexable" };
@@ -637,8 +653,9 @@ export async function fetchInventory(urls, startUrl, { fetchImpl = fetch, concur
   const seen = new Set();
   for (const raw of urls) {
     const url = normalizeUrl(raw, startUrl);
-    if (!url || seen.has(url) || !sameHost(url, startUrl)) continue;
-    seen.add(url);
+    const key = urlKey(url);
+    if (!url || !key || seen.has(key) || !sameHost(url, startUrl)) continue;
+    seen.add(key);
     unique.push(url);
   }
 
