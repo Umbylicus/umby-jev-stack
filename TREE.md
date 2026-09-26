@@ -18,6 +18,7 @@ This repo is a **skill tree**, not a one-off. Each skill lives in its own folder
 | 10 | `skills/umby-jev-browser/` | Jev Browse my site (`umby-jev-browser`) | Browser Harness/Chrome — indexed controls, error Nouls, then numbered real issues and a matching one-line fix for each (v2.3.1) |
 | 11 | `skills/umby-jev-speedy/` | Speedy Jev (`umby-jev-speedy`) | Incremental candidate index; four independent Nouls; ≥ 0.70 only; no deletions |
 | 12 | `skills/umby-jev-browse-pass/` | Jev browse pass (`umby-jev-browse-pass`) | After a feature lands, start the local server and have Jev click through only what was added (v1.0.0) |
+| 13 | `skills/umby-jev-do/` | Jev Do this (`umby-jev-do`) | Same indexed-control loop as Jev Browse my site, for one named task (Google search, X or Facebook post, any site task); publish, send, or pay only when explicitly asked (v1.0.0) |
 
 Add new skills as siblings under `skills/`.
 
@@ -58,6 +59,10 @@ The whole-tree plugin auto-discovers every immediate child of `skills/`.
 - HTTP-first — `POST https://api.typesafe.ai/v1/systemone`, model `jev-latest`
 - Independent Nouls per hunt — **never** a single highest-priority Choice that hides other hits
 - Jev classifies only; confirm/compile agents never edit application code. Human reviews the full list and decides.
+
+## Tree 1.6.3
+
+- Jev Do this 1.0.0 (`umby-jev-do`) drives Chrome with Jev to finish one task the user named, such as a Google search or an X or Facebook post. It takes the shortest path instead of covering every control, and publishes, sends, or pays only when the user explicitly asked.
 
 ## Tree 1.6.2
 

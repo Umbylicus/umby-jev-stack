@@ -7,7 +7,7 @@
     {
       "name": "umby-jev-stack",
       "description": "Umby Jev skill tree — all skills (install the whole tree)",
-      "version": "1.6.2",
+      "version": "1.6.3",
       "source": "./"
     },
     {
@@ -81,6 +81,12 @@
       "description": "Skill 11: Speedy Jev — incremental clutter/performance candidates, ≥ 0.70 list, look-only cleanup proposals",
       "version": "1.0.0",
       "source": "./skills/umby-jev-speedy"
+    },
+    {
+      "name": "umby-jev-do",
+      "description": "Skill 13: Jev Do this — Chrome with Jev finishes one named web task (Google search, X or Facebook post, any site task); publish, send, or pay only when explicitly asked",
+      "version": "1.0.0",
+      "source": "./skills/umby-jev-do"
     }
   ]
 }

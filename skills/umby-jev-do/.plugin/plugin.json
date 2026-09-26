@@ -1,0 +1,13 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "umby-jev-do",
+  "version": "1.0.0",
+  "description": "Jev Do this — Chrome with Jev finishes one named web task (Google search, X or Facebook post, any site task); publish, send, or pay only when explicitly asked",
+  "author": {
+    "name": "Umby",
+    "url": "https://github.com/Umbylicus"
+  },
+  "homepage": "https://github.com/Umbylicus/umby-jev-stack",
+  "repository": "https://github.com/Umbylicus/umby-jev-stack",
+  "license": "MIT"
+}
