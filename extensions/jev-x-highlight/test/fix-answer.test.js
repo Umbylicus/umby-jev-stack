@@ -24,6 +24,16 @@ test("bodyAfter reads array-like childNodes and does not throw", () => {
   assert.equal(answer.bodyAfter(heading), "Orders leave the warehouse in two days.");
 });
 
+test("bodyAfter separates sibling blocks instead of gluing words", () => {
+  const heading = { nodeType: 1, tagName: "H2", textContent: "Shipping" };
+  const first = { nodeType: 1, tagName: "P", textContent: "Orders leave" };
+  const second = { nodeType: 1, tagName: "P", textContent: "the warehouse in two days." };
+  const nodes = listLike([heading, first, second]);
+  assert.equal(typeof nodes.indexOf, "undefined");
+  heading.parentNode = { childNodes: nodes };
+  assert.equal(answer.bodyAfter(heading), "Orders leave the warehouse in two days.");
+});
+
 test("bestSection selects the shipping heading from a minidom page", () => {
   const doc = createDocument();
   const heading = h("h2", { ownerDocument: doc, text: "Shipping" });

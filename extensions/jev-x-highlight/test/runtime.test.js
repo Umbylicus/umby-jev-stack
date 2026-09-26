@@ -15,6 +15,7 @@ test("defaults keep noisy tools off and X highlighting ready", () => {
   assert.equal(state.sites.gmail, false);
   assert.equal(state.features.highlight, true);
   assert.equal(state.features.ads, false);
+  assert.equal(state.features.hidePosts, false);
   assert.equal(state.features.focusDeclutter, false);
   assert.equal(state.features.mail, false);
   assert.equal(state.features.highlightShortcut, true);
@@ -32,6 +33,9 @@ test("master off stops every feature and a site off stays off", () => {
     features: { ads: true, mail: true, highlight: true }
   });
   assert.equal(runtime.featureOn(state, "ads"), false);
+  assert.equal(runtime.featureOn(state, "hidePosts"), false);
+  assert.equal(runtime.featureOn(state, "focusDeclutter"), false);
+  assert.equal(runtime.featureOn(state, "highlight"), false);
   assert.equal(runtime.siteOn(state, "x"), false);
   state.enabled = true;
   state.sites.facebook = false;
@@ -89,6 +93,45 @@ test("turning highlight off stops marks even inside work hours", () => {
 test("the api key stays on the saved state and defaults empty", () => {
   assert.equal(runtime.mergeState({ apiKey: "local-only" }).apiKey, "local-only");
   assert.equal(runtime.mergeState({}).apiKey, "");
+  assert.equal(runtime.mergeState({ apiKey: "  " }).apiKey, "");
+});
+
+test("false flags stay false and a topic is not in both lists", () => {
+  const state = runtime.mergeState({
+    enabled: true,
+    sites: { x: false },
+    features: {
+      highlight: false,
+      ads: false,
+      hidePosts: false,
+      mail: true,
+      focusDeclutter: true,
+      extraFlag: false
+    },
+    interests: ["sports", "Food"],
+    notInterests: ["SPORTS"],
+    apiKey: "   "
+  });
+  assert.equal(state.sites.x, false);
+  assert.equal(state.sites.facebook, false);
+  assert.equal(state.features.highlight, false);
+  assert.equal(state.features.ads, false);
+  assert.equal(state.features.hidePosts, false);
+  assert.equal(state.features.mail, true);
+  assert.equal(state.features.focusDeclutter, true);
+  assert.equal(state.features.extraFlag, false);
+  assert.equal(state.features.draftCheck, false);
+  assert.equal(runtime.featureOn(state, "highlight"), false);
+  assert.equal(runtime.featureOn(state, "ads"), false);
+  assert.equal(runtime.featureOn(state, "hidePosts"), false);
+  assert.equal(runtime.featureOn(state, "focusDeclutter"), true);
+  state.enabled = false;
+  for (const id of Object.keys(state.features)) {
+    assert.equal(runtime.featureOn(state, id), false, id);
+  }
+  assert.deepEqual(state.interests, ["Food"]);
+  assert.deepEqual(state.notInterests, ["SPORTS"]);
+  assert.equal(state.apiKey, "");
 });
 
 test("phrase lists drop blanks and duplicates", () => {

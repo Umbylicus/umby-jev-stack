@@ -71,7 +71,10 @@
     for (let i = start + 1; i < nodes.length; i++) {
       const node = nodes[i];
       if (node.nodeType === 1 && /^H[1-6]$/.test(node.tagName)) break;
-      text += node.textContent || "";
+      const part = String(node.textContent || "").trim();
+      if (!part) continue;
+      if (text) text += " ";
+      text += part;
     }
     return text;
   }

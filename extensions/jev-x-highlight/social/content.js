@@ -39,8 +39,8 @@
 
   const LABEL_PATTERNS = {
     x: /^(promoted|ad)$/,
-    facebook: /^(sponsored|promoted)$/,
-    instagram: /^(sponsored|promoted)$/,
+    facebook: /^(sponsored|promoted)\b/,
+    instagram: /^(sponsored|promoted)\b/,
     youtube: /^(ad|sponsored|promoted)$/,
     reddit: /^promoted$/,
     linkedin: /^promoted$/
@@ -70,6 +70,10 @@
       .replace(/\s+/g, " ")
       .trim()
       .toLowerCase();
+  }
+
+  function stripInvis(value) {
+    return String(value || "").replace(/[\u200b-\u200f\ufeff\u2060]/g, "");
   }
 
   function ownText(el) {
@@ -208,6 +212,13 @@
     return selectors.some((selector) => matchesSelector(el, selector));
   }
 
+  function isFacebookUnit(el) {
+    if (!el || el.nodeType !== 1) return false;
+    if (attr(el, "data-pagelet").indexOf("FeedUnit") >= 0) return true;
+    const parent = el.parentElement;
+    return !!(parent && el.tagName === "DIV" && matchesSelector(parent, 'div[role="feed"]'));
+  }
+
   function insidePost(el, site) {
     let node = el;
     while (node && node.nodeType === 1) {
@@ -276,16 +287,6 @@
     return !!(el && el.nodeType === 1 && (matchesComposer(el) || matchesMessageUi(el) || matchesAccountMenu(el) || matchesChrome(el)));
   }
 
-  function hasProtectedDescendant(el) {
-    if (!el) return false;
-    const kids = el.children ? Array.from(el.children) : [];
-    for (const child of kids) {
-      if (isProtectedElement(child) || hasProtectedDescendant(child)) return true;
-    }
-    if (el.shadowRoot && hasProtectedDescendant(el.shadowRoot)) return true;
-    return false;
-  }
-
   function isProtected(el) {
     if (!el || el.nodeType !== 1) return false;
     let node = el;
@@ -293,7 +294,28 @@
       if (isProtectedElement(node)) return true;
       node = node.parentElement;
     }
-    return hasProtectedDescendant(el);
+    return false;
+  }
+
+  function hasPostAncestor(node, stop) {
+    let current = node && node.parentElement;
+    while (current) {
+      if (current.nodeType === 1 && (current.tagName === "ARTICLE" || attr(current, "role").toLowerCase() === "article")) return true;
+      if (current === stop) break;
+      current = current.parentElement;
+    }
+    return false;
+  }
+
+  function enclosesLockedSurface(el) {
+    if (!el || el.nodeType !== 1) return false;
+    if (isOnlyComposer(el)) return true;
+    for (const node of deepElements(el)) {
+      if (node === el) continue;
+      if (matchesChrome(node) || matchesMessageUi(node)) return true;
+      if (matchesComposer(node) && !hasPostAncestor(node, el)) return true;
+    }
+    return false;
   }
 
   function textOutside(rootNode, excluded) {
@@ -397,15 +419,59 @@
   }
 
   function isShortAdText(value) {
-    return /^(ad|sponsored|promoted)(?:$|[·•|:-].*)$/.test(norm(value));
+    const text = norm(stripInvis(value));
+    if (!text || text.length > 60) return false;
+    return /^(ad|sponsored|promoted)(?:$|[\s·•|:-].*)/.test(text);
+  }
+
+  function labelText(value) {
+    const text = norm(stripInvis(value));
+    if (!text || text.length > 60) return "";
+    return text;
+  }
+
+  function readInnerText(node) {
+    try {
+      const value = node && node.innerText;
+      return typeof value === "string" ? value : "";
+    } catch (error) {
+      return "";
+    }
+  }
+
+  function matchesAdLabel(value, regex) {
+    const text = labelText(value);
+    if (!text) return false;
+    if (regex && regex.test(text)) return true;
+    return text.length <= 24 && isShortAdText(text);
+  }
+
+  function hasHiddenChild(node) {
+    if (!node || typeof node.querySelector !== "function") return false;
+    try {
+      return !!node.querySelector('[aria-hidden="true"], [hidden]');
+    } catch (error) {
+      return false;
+    }
+  }
+
+  function nodeHasAdLabel(node, regex) {
+    if (!node || node.nodeType !== 1) return false;
+    if (matchesAdLabel(attr(node, "aria-label"), regex)) return true;
+    if (matchesAdLabel(attr(node, "title"), regex)) return true;
+    const count = node.childNodes ? node.childNodes.length : 0;
+    if (count > 64) return false;
+    const raw = node.textContent == null ? "" : String(node.textContent);
+    if (raw.length > 800) return false;
+    if (matchesAdLabel(raw, regex)) return true;
+    if (stripInvis(raw).length <= 60 && !hasHiddenChild(node)) return false;
+    return matchesAdLabel(readInnerText(node), regex);
   }
 
   function hasOwnLabel(rootNode, regex, ignore) {
     for (const node of deepElements(rootNode)) {
       if (ignore && ignore(node)) continue;
-      const text = norm(ownText(node));
-      if (!text || text.length > 24) continue;
-      if (regex.test(text)) return true;
+      if (nodeHasAdLabel(node, regex)) return true;
     }
     return false;
   }
@@ -522,6 +588,20 @@
         if (post && post.el) posts.push(post);
       }
     }
+    if (siteId === "facebook") {
+      const unitSelectors = ['div[role="feed"] > div', '[data-pagelet*="FeedUnit"]'];
+      for (const selector of unitSelectors) {
+        for (const el of deepQueryAll(document, selector)) {
+          if (seen.has(el) || isOnlyComposer(el)) continue;
+          if (!hasOwnLabel(el, LABEL_PATTERNS.facebook, bodyIgnored)) continue;
+          seen.add(el);
+          const post = read(el);
+          if (!post || !post.el) continue;
+          post.ad = true;
+          posts.push(post);
+        }
+      }
+    }
     return posts.filter((post) => {
       return !posts.some((other) => other !== post && other.id && other.id === post.id && other.el.contains(post.el));
     });
@@ -556,9 +636,11 @@
       if (parent.tagName === "BODY" || parent.tagName === "HTML" || parent.tagName === "DOCUMENT") break;
       if (attr(parent, "role").toLowerCase() === "main") break;
       if (typeof parent.querySelector === "function" && parent.querySelector('[role="main"]')) break;
+      if (site === "facebook" && attr(parent, "role").toLowerCase() === "feed") break;
       if (isProtectedElement(parent) && !isPostElement(parent, site)) break;
       chosen = parent;
       if (isPostElement(parent, site)) return parent;
+      if (site === "facebook" && isFacebookUnit(parent)) return parent;
       const tag = parent.tagName;
       const role = attr(parent, "role").toLowerCase();
       if (tag === "ARTICLE" || tag === "ASIDE" || tag === "SECTION" || role === "complementary" || role === "article") return parent;
@@ -591,9 +673,8 @@
     if (pattern) {
       const scope = document.documentElement || document.body || document;
       for (const el of deepElements(scope)) {
-        const text = norm(ownText(el));
-        if (!text || text.length > 24 || !pattern.test(text)) continue;
         if (bodyIgnored(el)) continue;
+        if (!nodeHasAdLabel(el, pattern)) continue;
         if (siteId === "x" && attr(el, "data-testid") !== "socialContext" && !(el.closest && el.closest('[data-testid="socialContext"]'))) continue;
         push(cardForLabel(el, siteId));
       }
@@ -602,8 +683,8 @@
     for (const el of candidates) {
       if (!el.parentNode && el.tagName !== "IFRAME") continue;
       if (isProtected(el) || lockedChrome(el)) continue;
-      const containsReal = posts.some((post) => !post.ad && post.el !== el && el.contains(post.el));
-      const action = containsReal || containsLockedChrome(el) ? "blur" : "remove";
+      const containsReal = wrapsOrganicPost(el, posts);
+      const action = containsReal || containsLockedChrome(el) || enclosesLockedSurface(el) ? "blur" : "remove";
       results.push({ el, action });
     }
     return results;
@@ -769,13 +850,40 @@
     if (typeof event.stopImmediatePropagation === "function") event.stopImmediatePropagation();
   }
 
-  function send(message) {
+  function send(message, done) {
     try {
       const runtime = root.chrome && root.chrome.runtime;
-      if (runtime && typeof runtime.sendMessage === "function") runtime.sendMessage(message);
+      if (runtime && typeof runtime.sendMessage === "function") runtime.sendMessage(message, done);
+      else if (done) done(null);
     } catch (error) {
-      /* a missing listener is not a scan failure */
+      if (done) done(null);
     }
+  }
+
+  const apiMarks = new Map();
+  const apiPending = new Set();
+
+  function queuePostAsk(post, state) {
+    if (!post || !post.id || !state || !state.apiKey) return;
+    if (apiMarks.has(post.id) || apiPending.has(post.id)) return;
+    const ask = root.JEVAsk;
+    if (!ask || typeof ask.item !== "function") return;
+    apiPending.add(post.id);
+    const allow = (state.interests || []).join(", ") || "none";
+    const block = (state.notInterests || []).join(", ") || "none";
+    ask.item("social-post", post.id, (post.author || "") + "\n" + (post.text || ""), [
+      { key: "is_ad", instructions: "Is this a paid ad, sponsored post, or promoted unit? The word Sponsored means it is an ad.", yes: "It is an ad.", no: "It is an ordinary post." },
+      { key: "is_spam", instructions: "Is this obvious spam, a scam, or bait?", yes: "It is spam.", no: "It is not spam." },
+      { key: "matches_allow", instructions: "Does this post match any of these interest topics: " + allow + "?", yes: "It matches an interest topic.", no: "It does not match an interest topic." },
+      { key: "matches_block", instructions: "Does this post match any of these blocked topics: " + block + "?", yes: "It matches a blocked topic.", no: "It does not match a blocked topic." }
+    ]).then(function (res) {
+      apiPending.delete(post.id);
+      apiMarks.set(post.id, (res && res.answers) || {});
+      const host = (root.location && root.location.hostname) || "";
+      if (state && root.document) api.apply(root.document, state, new Date(), host);
+    }).catch(function () {
+      apiPending.delete(post.id);
+    });
   }
 
   function addControl(el, className, label, onClick) {
@@ -823,12 +931,35 @@
 
   function classifyPost(post, state) {
     const matcher = root.JEVMatch;
+    const api = apiMarks.get(post && post.id);
+    const ad = !!(post && post.ad) || !!(api && api.is_ad);
+    const spam = !!(api && api.is_spam) || !!(matcher && matcher.looksLikeSpam && matcher.looksLikeSpam(post && post.text));
+    if (ad || spam || (api && api.matches_block)) return "bad";
+    if (api && api.matches_allow) return "gold";
     if (!matcher || typeof matcher.classify !== "function") return "none";
     try {
-      return matcher.classify({ text: post.text, author: post.author, ad: post.ad }, state) || "none";
+      return matcher.classify({ text: post.text, author: post.author, ad: ad }, state) || "none";
     } catch (error) {
       return "none";
     }
+  }
+
+  function wrapsOrganicPost(el, posts) {
+    if (!el || !posts) return false;
+    return posts.some((other) => other && other.el && other.el !== el && !other.ad && el.contains(other.el));
+  }
+
+  function canRemove(el) {
+    return !!(el && el.parentNode && !isProtected(el) && !lockedChrome(el) && !containsLockedChrome(el) && !enclosesLockedSurface(el));
+  }
+
+  function hideOrBlur(el, allowDelete) {
+    if (!el || !el.parentNode) return;
+    if (allowDelete && canRemove(el)) {
+      el.remove();
+      return;
+    }
+    el.classList.add("jev-blur", "jev-anchor");
   }
 
   function applyAds(document, site) {
@@ -837,7 +968,7 @@
     removals.sort((a, b) => depth(b) - depth(a));
     for (const ad of removals) {
       if (!ad.el || !ad.el.parentNode || isProtected(ad.el) || lockedChrome(ad.el)) continue;
-      if (containsLockedChrome(ad.el)) {
+      if (containsLockedChrome(ad.el) || enclosesLockedSurface(ad.el)) {
         ad.el.classList.add("jev-blur");
         continue;
       }
@@ -862,6 +993,7 @@
 
   function paintPosts(posts, state, now, site, hostname) {
     const focus = featureOn(state, "focusDeclutter");
+    const hide = featureOn(state, "hidePosts");
     const marks = marksActive(state, now);
     const reading = featureOn(state, "readingList");
     const countOn = marks && featureOn(state, "sessionCount");
@@ -870,17 +1002,23 @@
     const typeSave = root.JEV && root.JEV.MSG && root.JEV.MSG.SAVE;
     for (const post of posts) {
       if (!post.el || !post.el.parentNode) continue;
+      queuePostAsk(post, state);
       const mark = classifyPost(post, state);
-      if (focus) {
-        if (mark === "bad" && !revealed.has(post.el)) {
-          post.el.classList.add("jev-collapsed");
-          addControl(post.el, "jev-show", "Show", () => {
-            revealed.add(post.el);
-            post.el.classList.remove("jev-collapsed");
-            const button = post.el.querySelector(".jev-show");
-            if (button) button.remove();
-          });
-        } else if (mark !== "gold" && mark !== "bad") post.el.classList.add("jev-faded");
+      const spam = !!(root.JEVMatch && root.JEVMatch.looksLikeSpam && root.JEVMatch.looksLikeSpam(post.text));
+      const api = apiMarks.get(post.id) || {};
+      const dropSpam = spam || !!api.is_spam;
+      const dropAd = !!post.ad || !!api.is_ad;
+      const dropBlocked = mark === "bad";
+      const dropOutsideFocus = focus && mark !== "gold";
+      const wrapsOrganic = wrapsOrganicPost(post.el, posts);
+      const adOn = hide || featureOn(state, "ads");
+      const blurWrappedAd = adOn && dropAd && wrapsOrganic;
+      const removeAd = adOn && dropAd && !wrapsOrganic;
+      if (dropSpam || removeAd || (hide && (dropBlocked || dropOutsideFocus) && !blurWrappedAd)) {
+        hideOrBlur(post.el, true);
+        if (!post.el.parentNode) continue;
+      } else if (blurWrappedAd || (focus && mark !== "gold")) {
+        post.el.classList.add("jev-blur", "jev-anchor");
       }
       if (marks && mark === "gold") post.el.classList.add("jev-gold", "jev-anchor");
       if (marks && mark === "bad") {
@@ -922,7 +1060,7 @@
     }
     if (SOCIAL.indexOf(site) < 0 || !jev.siteOn(state, site)) return;
     scan(document, () => {
-      if (featureOn(state, "ads")) applyAds(document, site);
+      if (featureOn(state, "ads") || featureOn(state, "hidePosts")) applyAds(document, site);
       if (featureOn(state, "focusDeclutter")) {
         for (const el of findClutter(document, site)) {
           if (el && el.parentNode && !isProtected(el)) el.classList.add("jev-hide");

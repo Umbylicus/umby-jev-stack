@@ -2,11 +2,15 @@
 
 html { color-scheme: light; }
 
-html, body { width: 320px; }
+html, body {
+  width: 320px;
+  max-height: 600px;
+}
 
 body {
   margin: 0;
   padding: 16px;
+  overflow-y: auto;
   background: #f6f1e8;
   color: #1d1a16;
   font: 15px/1.4 "Avenir Next", "Segoe UI", sans-serif;
@@ -51,6 +55,8 @@ button { font: inherit; cursor: pointer; }
   background: transparent;
   color: #1d1a16;
 }
+
+.keys { margin: 8px 0 12px; }
 
 .site {
   display: grid;

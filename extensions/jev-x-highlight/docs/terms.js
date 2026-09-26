@@ -16,10 +16,27 @@
     return parts.map((part) => String(part || "")).join(" ").toLowerCase().replace(/[-_/]+/g, " ");
   }
 
+  function isPolicyLabel(label) {
+    if (/\bterms of (?:service|use)\b|\bterms and conditions\b|\bprivacy (?:policy|notice|statement)\b|\bcookie policy\b|\blegal notice\b/.test(label)) {
+      return true;
+    }
+    const parts = label.split(/[|·•:]+/);
+    for (let i = 0; i < parts.length; i++) {
+      const part = parts[i].trim();
+      if (/^(terms|privacy|tos|eula|terms of service|terms of use|terms and conditions|privacy policy|privacy notice|cookie policy|legal notice)$/.test(part)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   function isTermsPage(page) {
     const src = page || {};
-    const blob = pageBlob([src.href, src.title, src.heading]);
-    return /\bterms\b|\bprivacy\b|\bcookie policy\b|\bcookiepolicy\b|\blegal notice\b|\blegalnotice\b/.test(blob);
+    const href = pageBlob([String(src.href || "").split("#")[0].split("?")[0]]);
+    if (/\bterms\b|\bprivacy\b|\bprivacypolicy\b|\btermsofservice\b|\btermsofuse\b|\btermsandconditions\b|\bcookie policy\b|\bcookiepolicy\b|\blegal notice\b|\blegalnotice\b|\btos\b|\beula\b/.test(href)) {
+      return true;
+    }
+    return isPolicyLabel(pageBlob([src.title, src.heading]));
   }
 
   function sentences(text) {
@@ -40,15 +57,20 @@
       return /auto[-\s]?renew|automatic(?:ally)?\s+renew|renews?\s+automatically/.test(text);
     }
     if (key === "cancellation") {
-      return /cancel(?:lation)?\s+within|cancellation window|\bdays?'?\s+notice\b|notice period/.test(text);
+      if (/\bcancel\w*(?:\s+\w+){0,8}\swithin\b|\bcancellation\s+(?:window|period)\b|\bcancel(?:lation)?\s+within\b/.test(text)) return true;
+      if (/\b\d+\s*-?\s*days?\s+to\s+cancel\b|\bdays?'?\s+notice\b|\bnotice period\b/.test(text)) return true;
+      if (/\bcancel\w*\b[\s\S]{0,40}\b\d+\s*-?\s*days?\b/.test(text)) return true;
+      return /\b\d+\s*-?\s*days?\b[\s\S]{0,40}\bcancel/.test(text);
     }
     if (key === "arbitration") {
-      return /\barbitration\b|waiv\w*(?:\s+\w+){0,4}\bjury\b|\bjury\b(?:\s+\w+){0,4}\bwaiv/.test(text);
+      return /\barbitration\b|\bwaiv\w*(?:\s+\w+){0,8}\s+jury\b|\bjury\b(?:\s+\w+){0,8}\s+waiv/.test(text);
     }
-    if (/sell(?:s|ing)? your (?:personal )?(?:data|information)/.test(text)) return true;
-    if (/sale of personal/.test(text)) return true;
-    if (/third parties/.test(text) && /for sale/.test(text)) return true;
-    return /sold to/.test(text) && /(data|information|personal|privacy)/.test(text);
+    if (key !== "dataSold") return false;
+    if (/sell(?:s|ing)?\s+(?:your\s+)?(?:personal\s+)?(?:data|information)\b/.test(text)) return true;
+    if (/sale of\s+(?:your\s+)?personal\s+(?:data|information)\b/.test(text)) return true;
+    if (/\bthird parties\b/.test(text) && /\bfor sale\b/.test(text)) return true;
+    if (/\bsold\b/.test(text) && /\b(personal data|personal information|data|information|privacy)\b/.test(text)) return true;
+    return false;
   }
 
   function clipBucket(matches) {
@@ -87,8 +109,15 @@
     return { href, title, heading };
   }
 
+  function collectNodes(nodes) {
+    const out = [];
+    if (!nodes || typeof nodes.length !== "number") return out;
+    for (let i = 0; i < nodes.length; i++) out.push(nodes[i]);
+    return out;
+  }
+
   function pageText(doc) {
-    const cards = typeof doc.querySelectorAll === "function" ? [...doc.querySelectorAll(".jev-card")] : [];
+    const cards = typeof doc.querySelectorAll === "function" ? collectNodes(doc.querySelectorAll(".jev-card")) : [];
     const spots = cards.map((card) => ({ card, parent: card.parentNode, next: card.nextSibling }));
     for (const card of cards) card.remove();
     try {

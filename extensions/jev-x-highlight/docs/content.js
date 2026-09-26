@@ -80,9 +80,16 @@
     doc.body.appendChild(card);
   }
 
+  function collectNodes(nodes) {
+    const out = [];
+    if (!nodes || typeof nodes.length !== "number") return out;
+    for (let i = 0; i < nodes.length; i++) out.push(nodes[i]);
+    return out;
+  }
+
   function pageText(doc) {
     if (!doc || !doc.body) return "";
-    const cards = typeof doc.querySelectorAll === "function" ? [...doc.querySelectorAll(".jev-card")] : [];
+    const cards = typeof doc.querySelectorAll === "function" ? collectNodes(doc.querySelectorAll(".jev-card")) : [];
     const spots = cards.map((card) => ({ card, parent: card.parentNode, next: card.nextSibling }));
     for (const card of cards) card.remove();
     try {

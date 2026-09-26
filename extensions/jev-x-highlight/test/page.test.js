@@ -47,6 +47,15 @@ test("draft promises flag price, date, and refund, and off does not mark", () =>
   assert.deepEqual(priced.map((item) => item.kind).sort(), ["date", "price"]);
   assert.equal(draft.findPromises("I will refund you")[0].kind, "refund");
   assert.deepEqual(draft.findPromises("hello there"), []);
+  assert.deepEqual(draft.findPromises("I sat down and watched the sun."), []);
+  assert.deepEqual(draft.findPromises("They wed quietly at home."), []);
+  assert.deepEqual(draft.findPromises("I may refund you").map((item) => item.kind), ["refund"]);
+  assert.ok(draft.findPromises("I will ship on 15 May").some((item) => item.kind === "date"));
+  assert.ok(draft.findPromises("I will ship in May.").some((item) => item.kind === "date"));
+  assert.ok(draft.findPromises("Ship it by sat").some((item) => item.kind === "date"));
+  const usd = draft.findPromises("The price is USD 50 tomorrow");
+  assert.ok(usd.some((item) => item.kind === "price"));
+  assert.ok(usd.some((item) => item.kind === "date"));
 
   delete global.CSS;
   delete global.Highlight;
@@ -123,7 +132,13 @@ test("checkout brand Nike mismatches a lookalike host and not nike.com", () => {
   assert.equal(checkout.mismatches("Nike", "www.nike.com"), false);
   assert.equal(checkout.mismatches("Nike", "nike.com.evil.example"), true);
   assert.equal(checkout.mismatches("Coca-Cola", "coca-cola.com"), false);
+  assert.equal(checkout.mismatches("The Coca-Cola Company", "coca-cola.com"), false);
   assert.equal(checkout.mismatches("Home Depot", "homedepot.com"), false);
+  assert.equal(checkout.mismatches("The Home Depot", "homedepot.com"), false);
+  assert.equal(checkout.mismatches("Welcome to Nike", "www.nike.com"), false);
+  assert.equal(checkout.mismatches("Nike logo", "nike.com"), false);
+  assert.equal(checkout.mismatches("logo", "evil.example"), false);
+  assert.equal(checkout.mismatches("Photoshop", "shop.com"), true);
   assert.equal(checkout.mismatches("Secure checkout", "nike.com"), false);
   assert.equal(checkout.mismatches("", "nike-deals.shop"), false);
   assert.equal(checkout.isPayPage({ href: "https://nike-deals.shop/checkout", text: "" }), true);
@@ -134,6 +149,10 @@ test("checkout brand Nike mismatches a lookalike host and not nike.com", () => {
   useDoc(doc);
   checkout.sync(on("checkoutDomain"));
   assert.match(doc.body.textContent, /This pay page does not match the brand in the header\./);
+  checkout.sync({ enabled: false, features: { checkoutDomain: true } });
+  assert.equal(doc.querySelector(".jev-card"), null);
+  checkout.sync(on("checkoutDomain"));
+  assert.match(doc.body.textContent, /This pay page does not match the brand in the header\./);
   doc.location = { href: "https://nike.com/checkout", hostname: "nike.com" };
   checkout.sync(on("checkoutDomain"));
   assert.equal(doc.body.textContent.includes("This pay page does not match the brand in the header."), false);
@@ -141,6 +160,14 @@ test("checkout brand Nike mismatches a lookalike host and not nike.com", () => {
   checkout.sync(on("checkoutDomain"));
   checkout.sync(off("checkoutDomain"));
   assert.equal(doc.querySelector(".jev-card"), null);
+
+  const headingOnly = createDocument();
+  headingOnly.location = { href: "https://evil.example/checkout", hostname: "evil.example" };
+  const header = el(headingOnly, "header", {}, el(headingOnly, "h1", { text: "Checkout" }), el(headingOnly, "img", { alt: "logo" }));
+  headingOnly.body.append(header);
+  useDoc(headingOnly);
+  checkout.sync(on("checkoutDomain"));
+  assert.equal(headingOnly.querySelector(".jev-card"), null);
 });
 
 test("steps hide the essay above a three-step list and restore it when off", () => {
@@ -199,7 +226,10 @@ test("reject labels are outlined and accept is not, with no click", () => {
   cookies.sync(off("rejectCookies"));
   assert.equal(reject.classList.contains("jev-reject"), false);
   assert.equal(cookies.isRejectLabel("Essential only"), true);
+  assert.equal(cookies.isRejectLabel("Essential-only"), true);
+  assert.equal(cookies.isRejectLabel("Reject all cookies"), true);
   assert.equal(cookies.isRejectLabel("Allow"), false);
+  assert.equal(cookies.isRejectLabel("Accept all"), false);
 });
 
 test("a decision line names the owner and date without inventing today", () => {
@@ -214,6 +244,11 @@ test("a decision line names the owner and date without inventing today", () => {
   assert.match(plain, /Date: none/);
   assert.equal(plain.includes("\n"), false);
   assert.equal(plain.includes("2031"), false);
+  const caps = decision.line("DANA will approve the refund on Friday.", new Date("2031-01-02T00:00:00Z"));
+  assert.match(caps, /Owner: DANA/);
+  assert.match(caps, /Date: Friday/);
+  assert.equal(caps.includes("2031"), false);
+  assert.equal(caps.includes("\n"), false);
 
   const doc = createDocument();
   const sentence = "Dana will approve the refund on Friday and send the receipt.";
@@ -261,6 +296,11 @@ test("must-haves fail only the spec rows that miss the limit", () => {
   assert.equal(must.rowFails("works on 120V", "Weight 25 lb"), false);
   assert.equal(must.rowFails("under $50", "$80"), true);
   assert.equal(must.rowFails("under $50", "$20"), false);
+  assert.equal(must.rowFails("under $50", "80 dollars"), true);
+  assert.equal(must.rowFails("under $50", "USD 80"), true);
+  assert.equal(must.rowFails("under $50", "USD 40"), false);
+  assert.equal(must.rowFails("under $50 and under 20 lb", "Weight 25 lb"), true);
+  assert.equal(must.rowFails("under $50 and under 20 lb", "Color red"), false);
 
   const doc = createDocument();
   doc.location = { href: "https://shop.example/dp/B00", hostname: "shop.example" };
@@ -363,6 +403,10 @@ test("help me cancel ranks controls, glows the earliest, and does not click it",
   assert.equal(cancel.rankControl("Cancel subscription"), 2);
   assert.equal(cancel.rankControl("End subscription"), 2);
   assert.equal(cancel.rankControl("Close account"), 2);
+  assert.equal(cancel.rankControl("Cancel my subscription"), 2);
+  assert.equal(cancel.rankControl("Manage your subscription"), 1);
+  assert.equal(cancel.rankControl("End my subscription"), 2);
+  assert.equal(cancel.rankControl("Close my account"), 2);
   assert.equal(cancel.rankControl("Save changes"), 0);
   assert.notEqual(cancel.rankControl("Confirm cancellation"), 2);
   assert.equal(fs.readFileSync(path.join(root, "page", "cancel.js"), "utf8").includes(".click("), false);
@@ -512,4 +556,40 @@ test("content syncs every page tool only after an extension id exists", () => {
   global.document = previousDocument;
   global.chrome = previousChrome;
   global.JEV.watchState = previousWatch;
+});
+
+test("content does not score mail hosts or remove rows", () => {
+  const previousDocument = global.document;
+  const previousChrome = global.chrome;
+  const previousAsk = global.JEVAsk;
+  const previousLocation = global.location;
+  const doc = createDocument();
+  const row = el(doc, "tr", { text: "Inbox message" });
+  doc.body.append(row);
+  const asked = [];
+  global.JEVAsk = {
+    eachFeature(state, text) {
+      asked.push(text);
+    }
+  };
+  global.document = doc;
+  global.chrome = { runtime: { id: "abc" } };
+  const state = { enabled: true, features: { draftCheck: true }, apiKey: "k" };
+  try {
+    global.location = { hostname: "mail.google.com", href: "https://mail.google.com/mail/u/0/" };
+    content.syncAll(state);
+    global.location = { hostname: "outlook.office.com", href: "https://outlook.office.com/mail/" };
+    content.syncAll(state);
+    assert.equal(asked.length, 0);
+    assert.equal(row.parentElement, doc.body);
+    global.location = { hostname: "example.com", href: "https://example.com/" };
+    content.syncAll(state);
+    assert.equal(asked.length, 1);
+    assert.equal(row.parentElement, doc.body);
+  } finally {
+    global.document = previousDocument;
+    global.chrome = previousChrome;
+    global.JEVAsk = previousAsk;
+    global.location = previousLocation;
+  }
 });

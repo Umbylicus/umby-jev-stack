@@ -67,7 +67,7 @@ test("settings page has every feature switch, every site switch, and the logo", 
     assert.ok(html.includes(`data-site="${id}"`), id);
   }
   for (const id of [
-    "interest-input", "interest-add", "not-interest-input", "not-interest-add",
+    "topic-search", "topic-list",
     "gold-account-input", "red-account-input", "reading-search",
     "session-gold", "session-red", "hours-start", "hours-end",
     "profile-name", "profile-email", "profile-phone", "profile-address",
@@ -85,7 +85,9 @@ test("popup is only the master switch, sites, and Setup", () => {
   assert.match(html, /alt="Umby"/);
   assert.ok(html.includes('id="turn"'));
   assert.ok(html.includes('id="setup"'));
-  assert.doesNotMatch(html, /data-feature=/);
+  assert.ok(html.includes('data-feature="focusDeclutter"'));
+  assert.ok(html.includes('data-feature="hidePosts"'));
+  assert.ok(html.includes('data-feature="ads"'));
   assert.doesNotMatch(html + script, /categories\.js/);
   assert.doesNotMatch(html, /Marketing/i);
   for (const id of Object.values(SITES)) {

@@ -9,7 +9,13 @@
     "only essential": true,
     "decline all": true,
     "refuse all": true,
-    "required only": true
+    "required only": true,
+    "reject all cookies": true,
+    "decline all cookies": true,
+    "essential cookies only": true,
+    "only essential cookies": true,
+    "necessary cookies only": true,
+    "only necessary cookies": true
   };
 
   function featureOn(state) {
@@ -18,7 +24,12 @@
   }
 
   function isRejectLabel(text) {
-    const norm = String(text || "").replace(/\s+/g, " ").trim().toLowerCase().replace(/[.!]+$/, "");
+    const norm = String(text || "")
+      .replace(/[-‐‑–—]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .toLowerCase()
+      .replace(/[.!]+$/, "");
     return REJECT[norm] === true;
   }
 

@@ -37,9 +37,12 @@
 
   function moneyValues(text) {
     const values = [];
-    const re = /\$\s*(\d+(?:,\d{3})*(?:\.\d+)?)/g;
+    const re = /\$\s*(\d+(?:,\d{3})*(?:\.\d+)?)|\bUSD\s*(\d+(?:,\d{3})*(?:\.\d+)?)|(\d+(?:,\d{3})*(?:\.\d+)?)\s*(?:dollars?|USD)\b/gi;
     let match;
-    while ((match = re.exec(text))) values.push(Number(match[1].replace(/,/g, "")));
+    while ((match = re.exec(text))) {
+      const raw = match[1] || match[2] || match[3];
+      if (raw) values.push(Number(raw.replace(/,/g, "")));
+    }
     return values;
   }
 
@@ -88,20 +91,17 @@
     const money = moneyCap(req);
     if (money != null) {
       const amounts = moneyValues(row);
-      if (!amounts.length) return false;
-      return amounts.some(function (amount) { return amount > money + 1e-9; });
+      if (amounts.some(function (amount) { return amount > money + 1e-9; })) return true;
     }
     const weight = weightCap(req);
     if (weight != null) {
       const weights = weightValues(row);
-      if (!weights.length) return false;
-      return weights.some(function (pounds) { return pounds > weight + 1e-9; });
+      if (weights.some(function (pounds) { return pounds > weight + 1e-9; })) return true;
     }
     const volts = voltageTarget(req);
     if (volts != null) {
       const specs = voltageSpecs(row);
-      if (!specs.length) return false;
-      return specs.every(function (spec) { return volts < spec.lo - 0.01 || volts > spec.hi + 0.01; });
+      if (specs.length && specs.every(function (spec) { return volts < spec.lo - 0.01 || volts > spec.hi + 0.01; })) return true;
     }
     return false;
   }

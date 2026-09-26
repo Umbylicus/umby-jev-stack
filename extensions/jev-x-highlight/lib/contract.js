@@ -2,6 +2,7 @@
   const FEATURES = {
     highlight: "highlight",
     ads: "ads",
+    hidePosts: "hidePosts",
     focusDeclutter: "focusDeclutter",
     goldAccounts: "goldAccounts",
     redAccounts: "redAccounts",
@@ -52,7 +53,8 @@
   const FEATURE_LABELS = {
     highlight: "Highlight posts",
     ads: "Ads",
-    focusDeclutter: "Focus and declutter",
+    hidePosts: "Hide posts",
+    focusDeclutter: "Focus mode",
     goldAccounts: "Always-gold accounts",
     redAccounts: "Always-red accounts",
     sessionCount: "Session count",
@@ -92,6 +94,7 @@
     features: {
       highlight: true,
       ads: false,
+      hidePosts: false,
       focusDeclutter: false,
       goldAccounts: false,
       redAccounts: false,
@@ -142,7 +145,8 @@
     DUPLICATE_CLOSE: "jev-duplicate-close",
     PROPOSAL: "jev-proposal",
     PROPOSAL_DIFF: "jev-proposal-diff",
-    PDF_BYPASS: "jev-pdf-bypass"
+    PDF_BYPASS: "jev-pdf-bypass",
+    ASK: "jev-ask"
   };
 
   const TRACKING_PARAMS = [

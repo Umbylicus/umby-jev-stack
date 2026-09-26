@@ -21,12 +21,16 @@
     return !!(id && root.JEV.featureOn && root.JEV.featureOn(state, id));
   }
 
+  const BY_NAME = /\bby\s+([A-Z][A-Za-z]{2,})\b/;
+  const WILL_NAME = /\b([A-Z][A-Za-z]{2,})\s+will\b/;
+  const FIRST_NAME = /^([A-Z][A-Za-z]{2,})\b/;
+
   function findOwner(text) {
-    const byName = text.match(/\bby\s+([A-Z][a-z]+)\b/);
+    const byName = text.match(BY_NAME);
     if (byName && !STOP[byName[1].toLowerCase()]) return byName[1];
-    const willName = text.match(/\b([A-Z][a-z]+)\s+will\b/);
+    const willName = text.match(WILL_NAME);
     if (willName && !STOP[willName[1].toLowerCase()]) return willName[1];
-    const first = text.match(/^([A-Z][a-z]+)\b/);
+    const first = text.match(FIRST_NAME);
     if (first && !STOP[first[1].toLowerCase()]) return first[1];
     return "";
   }

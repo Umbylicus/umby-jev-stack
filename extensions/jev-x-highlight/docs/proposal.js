@@ -90,21 +90,39 @@
     return found;
   }
 
+  function pushNamedTerm(found, word) {
+    if (word === "annually" || word === "yearly" || word === "year") found.push("annual");
+    else if (word === "month") found.push("monthly");
+    else if (word === "week") found.push("weekly");
+    else if (word === "day") found.push("daily");
+    else found.push(word);
+  }
+
   function termTokens(text) {
-    const source = String(text || "").toLowerCase();
     const found = [];
-    const duration = /\b(\d+)\s*(day|week|month|year)s?\b/g;
-    let match;
-    while ((match = duration.exec(source))) found.push(match[1] + " " + match[2]);
-    const named = /\b(annual|annually|monthly|weekly|daily|quarterly|yearly)\b/g;
-    while ((match = named.exec(source))) {
-      const word = match[1] === "annually" || match[1] === "yearly" ? "annual" : match[1];
-      found.push(word);
+    const sentences = sentencesOf(text);
+    const list = sentences.length ? sentences : [String(text || "")];
+    for (let s = 0; s < list.length; s++) {
+      const source = list[s].toLowerCase();
+      const duration = /\b(\d+)\s*[-–—]?\s*(day|week|month|year)s?\b/g;
+      let match;
+      while ((match = duration.exec(source))) found.push(match[1] + " " + match[2]);
+      const per = /\bper\s+(day|week|month|year)\b/g;
+      while ((match = per.exec(source))) pushNamedTerm(found, match[1]);
+      const net = /\bnet[\s-]+(\d+)\b/g;
+      while ((match = net.exec(source))) found.push("net " + match[1]);
+      // Reporting cadence is not a contract term unless the sentence is about billing or the term.
+      if (/\b(term|subscription|renew|billing|billed|payment|invoice|fee|fees|notice|due)\b/.test(source)) {
+        const named = /\b(annual|annually|monthly|weekly|daily|quarterly|yearly)\b/g;
+        while ((match = named.exec(source))) pushNamedTerm(found, match[1]);
+      }
     }
-    const net = /\bnet[\s-]+(\d+)\b/g;
-    while ((match = net.exec(source))) found.push("net " + match[1]);
     found.sort();
-    return found;
+    const unique = [];
+    for (let i = 0; i < found.length; i++) {
+      if (i === 0 || found[i] !== found[i - 1]) unique.push(found[i]);
+    }
+    return unique;
   }
 
   function isLiabilitySentence(sentence) {
@@ -115,9 +133,19 @@
     return sentencesOf(text).filter(isLiabilitySentence);
   }
 
+  function canonMoney(text) {
+    return String(text || "").replace(/(?:\$|€|£)\s?\d[\d,]*(?:\.\d+)?|\b\d[\d,]*(?:\.\d+)?\s*(?:dollars|usd|eur|gbp)\b/gi, (match) => {
+      const value = amountValue(match);
+      if (!value) return match;
+      if (/€|eur/i.test(match)) return "eur" + value;
+      if (/£|gbp/i.test(match)) return "gbp" + value;
+      return "usd" + value;
+    });
+  }
+
   function normLiability(sentence) {
-    return String(sentence || "")
-      .toLowerCase()
+    // A comma or shall/will is not a liability change.
+    return canonMoney(String(sentence || "").toLowerCase())
       .replace(/\b(shall|will|must)\b/g, "modal")
       .replace(/[^a-z0-9$]+/g, " ")
       .replace(/\s+/g, " ")

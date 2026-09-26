@@ -46,11 +46,16 @@
     for (const key of Object.keys(state.sites)) {
       if (source.sites && typeof source.sites[key] === "boolean") state.sites[key] = source.sites[key];
     }
-    for (const key of Object.keys(state.features)) {
-      if (source.features && typeof source.features[key] === "boolean") state.features[key] = source.features[key];
+    // Absent flags keep defaults. An explicit false must stay false, including flags the popup does not draw.
+    if (source.features && typeof source.features === "object" && !Array.isArray(source.features)) {
+      for (const key of Object.keys(source.features)) {
+        if (!/^[A-Za-z][A-Za-z0-9]*$/.test(key)) continue;
+        if (typeof source.features[key] === "boolean") state.features[key] = source.features[key];
+      }
     }
-    state.interests = asPhrases(source.interests);
     state.notInterests = asPhrases(source.notInterests);
+    const blocked = new Set(state.notInterests.map((item) => item.toLowerCase()));
+    state.interests = asPhrases(source.interests).filter((item) => !blocked.has(item.toLowerCase()));
     state.goldAccounts = asPhrases(source.goldAccounts);
     state.redAccounts = asPhrases(source.redAccounts);
     state.readingList = Array.isArray(source.readingList)
@@ -74,7 +79,7 @@
     };
     state.mustHaveText = String(source.mustHaveText || "");
     state.jobCanDo = String(source.jobCanDo || "");
-    state.apiKey = String(source.apiKey || "");
+    state.apiKey = typeof source.apiKey === "string" ? source.apiKey.trim() : "";
     return state;
   }
 

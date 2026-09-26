@@ -70,10 +70,13 @@
     const text = asText(item.text);
     const author = asText(item.author);
     const features = (state && state.features) || {};
+    const topics = root.JEVTopics;
+    const blocked = topics && topics.phrasesFor ? topics.phrasesFor(state && state.notInterests) : (state && state.notInterests);
+    const allowed = topics && topics.phrasesFor ? topics.phrasesFor(state && state.interests) : (state && state.interests);
     if (item.ad || looksLikeSpam(text)) return "bad";
-    if (phraseHit(text, state && state.notInterests)) return "bad";
+    if (phraseHit(text, blocked)) return "bad";
     if (features.redAccounts && accountHit(author, state && state.redAccounts)) return "bad";
-    if (phraseHit(text, state && state.interests)) return "gold";
+    if (phraseHit(text, allowed)) return "gold";
     if (features.goldAccounts && accountHit(author, state && state.goldAccounts)) return "gold";
     return "none";
   }

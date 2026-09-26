@@ -13,11 +13,11 @@
   function rankControl(text) {
     const label = String(text || "").replace(/\s+/g, " ").trim().toLowerCase();
     if (!label) return 0;
-    if (/confirm cancellation|finish cancellation|yes,\s*cancel/.test(label)) return 5;
+    if (/confirm cancellation|finish cancellation|yes,?\s*cancel/.test(label)) return 5;
     if (/why are you leaving|\breason\b/.test(label)) return 3;
     if (/\b(?:continue|next)\b/.test(label)) return 4;
-    if (/cancel subscription|end subscription|close account/.test(label)) return 2;
-    if (/manage subscription|\bbilling\b|\bmembership\b/.test(label)) return 1;
+    if (/cancel(?:\s+\w+){0,3}\s+subscription|end(?:\s+\w+){0,3}\s+subscription|close(?:\s+\w+){0,3}\s+account/.test(label)) return 2;
+    if (/manage(?:\s+\w+){0,3}\s+subscription|\bbilling\b|\bmembership\b/.test(label)) return 1;
     return 0;
   }
 

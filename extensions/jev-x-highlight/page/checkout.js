@@ -32,11 +32,41 @@
     return String(value || "").toLowerCase().replace(/[^a-z0-9]/g, "");
   }
 
+  const GENERIC = {
+    checkout: true, securecheckout: true, payment: true, payments: true, pay: true, paynow: true,
+    cart: true, shop: true, store: true, home: true, welcome: true, login: true, signin: true,
+    account: true, logo: true, logos: true, icon: true, image: true, banner: true, header: true
+  };
+
+  const FILLER = {
+    checkout: true, secure: true, payment: true, payments: true, pay: true, now: true, cart: true,
+    shop: true, store: true, home: true, welcome: true, login: true, signin: true, account: true,
+    logo: true, logos: true, icon: true, image: true, banner: true, header: true, site: true,
+    the: true, to: true, and: true, of: true, a: true, an: true, official: true
+  };
+
   function genericBrand(value) {
     const key = compact(value);
-    return key === "checkout" || key === "securecheckout" || key === "payment" || key === "payments" ||
-      key === "pay" || key === "paynow" || key === "cart" || key === "shop" || key === "store" ||
-      key === "home" || key === "welcome" || key === "login" || key === "signin" || key === "account";
+    if (!key || GENERIC[key]) return true;
+    const tokens = String(value || "").toLowerCase().match(/[a-z0-9]+/g) || [];
+    if (!tokens.length) return true;
+    for (let i = 0; i < tokens.length; i++) {
+      if (!FILLER[tokens[i]]) return false;
+    }
+    return true;
+  }
+
+  function tokenJoins(brand, hostKey) {
+    const tokens = String(brand || "").toLowerCase().match(/[a-z0-9]+/g) || [];
+    for (let i = 0; i < tokens.length; i++) {
+      let joined = "";
+      for (let j = i; j < tokens.length; j++) {
+        joined += tokens[j];
+        if (joined === hostKey) return true;
+        if (joined.length > hostKey.length) break;
+      }
+    }
+    return false;
   }
 
   function brandFrom(doc) {
@@ -80,6 +110,7 @@
     const hostKey = compact(registrableLabel(hostname));
     if (!brandKey || brandKey.length < 3 || !hostKey || genericBrand(brand)) return false;
     if (hostKey === brandKey) return false;
+    if (tokenJoins(brand, hostKey)) return false;
     if (brandKey.indexOf(hostKey) === 0 && hostKey.length >= 4) return false;
     return true;
   }

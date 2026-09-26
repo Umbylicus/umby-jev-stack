@@ -69,12 +69,22 @@
 }
 
 .jev-blur {
-  filter: blur(8px) !important;
+  filter: blur(22px) !important;
+  opacity: 0.28 !important;
 }
 
 .jev-subject-strike {
   text-decoration: line-through !important;
   color: #d21f1f !important;
+}
+
+/* Gmail collapses table borders, so a row outline never shows. */
+tr.jev-gold td {
+  background-color: rgba(212, 160, 23, 0.45) !important;
+}
+
+tr.jev-bad td {
+  background-color: rgba(210, 31, 31, 0.28) !important;
 }
 
 .jev-glow {

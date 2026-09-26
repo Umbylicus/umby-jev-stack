@@ -41,12 +41,11 @@ test("focus without marks keeps interest full size and does not paint gold", () 
   doc.body.append(fencing, soccer, plain);
   social.apply(doc, state({ focusDeclutter: true, highlight: false }), new Date(), "x.com");
   assert.equal(fencing.classList.contains("jev-gold"), false);
-  assert.equal(fencing.classList.contains("jev-faded"), false);
-  assert.equal(fencing.classList.contains("jev-collapsed"), false);
-  assert.equal(soccer.classList.contains("jev-collapsed"), true);
+  assert.equal(fencing.classList.contains("jev-blur"), false);
+  assert.equal(soccer.classList.contains("jev-blur"), true);
   assert.equal(soccer.classList.contains("jev-gold"), false);
-  assert.equal(soccer.querySelector(".jev-show").textContent, "Show");
-  assert.equal(plain.classList.contains("jev-faded"), true);
+  assert.equal(plain.classList.contains("jev-blur"), true);
+  assert.equal(soccer.parentNode, doc.body);
   assert.equal(doc.querySelector(".jev-x"), null);
 });
 

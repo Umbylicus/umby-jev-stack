@@ -6,7 +6,11 @@ let queue = Promise.resolve();
 function update(mutate) {
   queue = queue.then(async () => {
     const next = JEV.mergeState(await chrome.storage.local.get(null));
+    const features = Object.assign({}, next.features);
+    const sites = Object.assign({}, next.sites);
     mutate(next);
+    next.features = Object.assign({}, features, next.features || {});
+    next.sites = Object.assign({}, sites, next.sites || {});
     await chrome.storage.local.set(next);
     state = next;
     paint();
@@ -125,10 +129,81 @@ function paintFields() {
   setIfIdle("api-key", state.apiKey);
 }
 
+let topicSignature = "";
+
+function topicKey(id) {
+  return String(id || "").trim().toLowerCase();
+}
+
+function topicOn(list, id) {
+  const key = topicKey(id);
+  return (list || []).some((item) => topicKey(item) === key);
+}
+
+function withoutTopic(list, id) {
+  const key = topicKey(id);
+  return (list || []).filter((item) => topicKey(item) !== key);
+}
+
+function paintTopics() {
+  const box = document.querySelector("#topic-list");
+  const search = document.querySelector("#topic-search");
+  if (!box || !search || !globalThis.JEVTopics) return;
+  const query = (search.value || "").trim().toLowerCase().replace(/\s+/g, " ");
+  const signature = query + "\0" + (state.interests || []).join("\n") + "\0" + (state.notInterests || []).join("\n");
+  if (signature === topicSignature) return;
+  topicSignature = signature;
+  const scroll = box.scrollTop;
+  box.replaceChildren();
+  let group = "";
+  JEVTopics.list.forEach((topic) => {
+    const hay = (topic.label + " " + topic.group + " " + topic.id + " " + topic.words.join(" ")).toLowerCase();
+    if (query && hay.indexOf(query) === -1) return;
+    if (topic.group !== group) {
+      group = topic.group;
+      const heading = document.createElement("p");
+      heading.className = "kicker";
+      heading.textContent = group;
+      box.append(heading);
+    }
+    const row = document.createElement("div");
+    row.className = "topic";
+    const name = document.createElement("span");
+    name.textContent = topic.label;
+    const allow = document.createElement("button");
+    allow.type = "button";
+    allow.textContent = "Interested";
+    allow.setAttribute("aria-pressed", topicOn(state.interests, topic.id) ? "true" : "false");
+    const block = document.createElement("button");
+    block.type = "button";
+    block.className = "block";
+    block.textContent = "Not interested";
+    block.setAttribute("aria-pressed", topicOn(state.notInterests, topic.id) ? "true" : "false");
+    allow.addEventListener("click", () => {
+      update((next) => {
+        const on = topicOn(next.interests, topic.id);
+        next.interests = withoutTopic(next.interests, topic.id);
+        next.notInterests = withoutTopic(next.notInterests, topic.id);
+        if (!on) next.interests = next.interests.concat(topic.id);
+      });
+    });
+    block.addEventListener("click", () => {
+      update((next) => {
+        const on = topicOn(next.notInterests, topic.id);
+        next.interests = withoutTopic(next.interests, topic.id);
+        next.notInterests = withoutTopic(next.notInterests, topic.id);
+        if (!on) next.notInterests = next.notInterests.concat(topic.id);
+      });
+    });
+    row.append(name, allow, block);
+    box.append(row);
+  });
+  box.scrollTop = scroll;
+}
+
 function paint() {
   paintSwitches();
-  paintPhraseList("interest-list", state.interests, "interests");
-  paintPhraseList("not-interest-list", state.notInterests, "notInterests");
+  paintTopics();
   paintPhraseList("gold-account-list", state.goldAccounts, "goldAccounts");
   paintPhraseList("red-account-list", state.redAccounts, "redAccounts");
   paintReading();
@@ -183,8 +258,8 @@ function bindText(id, apply) {
   });
 }
 
-bindAdder("interest-input", "interest-add", "interests");
-bindAdder("not-interest-input", "not-interest-add", "notInterests");
+const topicSearch = document.querySelector("#topic-search");
+if (topicSearch) topicSearch.addEventListener("input", () => paintTopics());
 bindAdder("gold-account-input", "gold-account-add", "goldAccounts");
 bindAdder("red-account-input", "red-account-add", "redAccounts");
 

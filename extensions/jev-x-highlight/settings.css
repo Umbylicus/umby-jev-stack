@@ -152,6 +152,42 @@ h3 {
 
 .composer input { flex: 1 1 auto; min-width: 0; }
 
+.topics {
+  max-height: 440px;
+  overflow: auto;
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.topic {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.topic span { font-size: 14px; }
+
+.topic button {
+  border: 1px solid #d9d0c3;
+  background: #fff;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+.topic button[aria-pressed="true"] {
+  background: #2f6f4e;
+  border-color: #2f6f4e;
+  color: #fbf8f3;
+}
+
+.topic button.block[aria-pressed="true"] {
+  background: #8d2a2a;
+  border-color: #8d2a2a;
+}
+
 input[type="text"],
 input[type="password"],
 input[type="search"],

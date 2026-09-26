@@ -1,6 +1,6 @@
 "use strict";
 
-importScripts("lib/contract.js", "lib/runtime.js", "lib/url.js", "lib/match.js", "docs/proposal.js");
+importScripts("lib/contract.js", "lib/runtime.js", "lib/url.js", "lib/match.js", "lib/ask.js", "docs/proposal.js");
 
 const ignoredDupes = new Map();
 const proposals = new Map();
@@ -348,6 +348,98 @@ async function toggleHighlight() {
   await paintBadge(state.enabled);
 }
 
+const askCache = new Map();
+let askKeyHash = "";
+
+function hashKey(value) {
+  let hash = 2166136261;
+  const text = String(value || "");
+  for (let i = 0; i < text.length; i++) {
+    hash ^= text.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return String(hash >>> 0);
+}
+
+function noteAskKey(key) {
+  const next = hashKey(key);
+  if (next === askKeyHash) return;
+  askKeyHash = next;
+  askCache.clear();
+}
+
+function readAskCache(cacheKey) {
+  const row = askCache.get(cacheKey);
+  if (!row) return undefined;
+  if (row.exp && Date.now() > row.exp) {
+    askCache.delete(cacheKey);
+    return undefined;
+  }
+  return row.on;
+}
+
+function writeAskCache(cacheKey, on, ttl) {
+  if (askCache.size > 400) askCache.clear();
+  askCache.set(cacheKey, { on: !!on, exp: ttl ? Date.now() + ttl : 0 });
+}
+
+async function postSpec(key, feature, content, spec) {
+  const specKey = String(spec.key);
+  const cacheKey = String(feature || "") + "\n" + specKey + "\n" + content;
+  const cached = readAskCache(cacheKey);
+  if (cached !== undefined) return { key: specKey, on: cached };
+  try {
+    const response = await fetch("https://api.typesafe.ai/v1/systemone", {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer " + key,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(JEVAskBody.buildBody(feature, content, spec))
+    });
+    let json = null;
+    try {
+      json = await response.json();
+    } catch (err) {
+      json = null;
+    }
+    const noul = response.ok ? JEVAskBody.finiteNoul(json, specKey) : null;
+    if (!response.ok || noul == null) {
+      writeAskCache(cacheKey, false, 15000);
+      return { key: specKey, on: false };
+    }
+    const on = noul >= 0.5;
+    writeAskCache(cacheKey, on, 0);
+    return { key: specKey, on: on };
+  } catch (err) {
+    writeAskCache(cacheKey, false, 15000);
+    return { key: specKey, on: false };
+  }
+}
+
+async function askJev(message) {
+  try {
+    const state = await readState();
+    const key = typeof state.apiKey === "string" ? state.apiKey.trim() : "";
+    noteAskKey(key);
+    const specs = message && Array.isArray(message.specs) ? message.specs.slice(0, 8) : [];
+    const content = String(message && message.content || "").slice(0, 6000);
+    const answers = {};
+    if (!key || !specs.length) return { answers: answers, missingKey: !key };
+    const usable = [];
+    for (const spec of specs) {
+      if (spec && spec.key != null && String(spec.key)) usable.push(spec);
+    }
+    if (!usable.length) return { answers: answers, missingKey: false };
+    const feature = message && message.feature;
+    const rows = await Promise.all(usable.map((spec) => postSpec(key, feature, content, spec)));
+    for (const row of rows) answers[row.key] = row.on;
+    return { answers: answers };
+  } catch (err) {
+    return { answers: {}, missingKey: false };
+  }
+}
+
 function handle(message, sender) {
   switch (message.type) {
     case JEV.MSG.SAVE:
@@ -382,6 +474,13 @@ chrome.commands.onCommand.addListener((command) => {
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (!message || typeof message.type !== "string") return;
+  if (message.type === JEV.MSG.ASK) {
+    askJev(message).then(
+      (result) => sendResponse(result || { answers: {} }),
+      () => sendResponse({ answers: {} })
+    );
+    return true;
+  }
   serial(() => handle(message, sender)).then(
     (result) => sendResponse(result || {}),
     () => sendResponse(message.type === JEV.MSG.PROPOSAL ? { waiting: true } : {})

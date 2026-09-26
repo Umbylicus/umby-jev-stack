@@ -18,9 +18,17 @@
     return !!(root.JEV && typeof root.JEV.featureOn === "function" && root.JEV.featureOn(state, id));
   }
 
+  function plain(value) {
+    return String(value || "")
+      .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+      .toLowerCase()
+      .replace(/[_./]+/g, " ")
+      .replace(/-+/g, " ");
+  }
+
   function fieldText(field) {
     return [field.type, field.name, field.id, field.autocomplete, field.label, field.placeholder]
-      .map((part) => String(part || "").toLowerCase().replace(/[_./]+/g, " ").replace(/-+/g, " "))
+      .map((part) => plain(part))
       .join(" ");
   }
 
@@ -43,10 +51,12 @@
     const phone = type === "tel" || /\b(phone|mobile|cell|telephone|tel)\b/.test(text);
     if (phone) return businessContext(text) ? "businessPhone" : "phone";
 
-    const address = /\b(street address|address|street|addr)\b/.test(text);
+    const notStreet = /\baddress\s+level\d*\b|\bpostal code\b|\bzip ?code\b|\bcountry name\b/.test(text) && !/\bstreet\b/.test(text);
+    const address = !notStreet && /\b(street address|address|street|addr)\b/.test(text);
     if (address) return businessContext(text) ? "businessAddress" : "address";
 
     if (/\b(user name|username|login|screen name)\b/.test(text)) return "";
+    if (/\b(job title|organization title)\b/.test(text)) return "";
     if (businessContext(text) || /\borg\b/.test(text)) return "businessName";
     if (/\b(full name|first name|last name|given name|family name|your name)\b/.test(text)) return "name";
     if (text.split(/[^a-z0-9]+/).includes("name")) return "name";
@@ -63,16 +73,18 @@
     if (aria) return clean(aria);
     const labelledby = el.getAttribute && el.getAttribute("aria-labelledby");
     if (labelledby && doc && typeof doc.getElementById === "function") {
-      const text = labelledby.split(/\s+/).map((id) => {
-        const node = doc.getElementById(id);
-        return node ? node.textContent : "";
-      }).join(" ");
+      const ids = labelledby.split(/\s+/);
+      let text = "";
+      for (let i = 0; i < ids.length; i++) {
+        const node = doc.getElementById(ids[i]);
+        text += (node ? node.textContent : "") + " ";
+      }
       if (clean(text)) return clean(text);
     }
     if (doc && el.id && typeof doc.querySelectorAll === "function") {
       const labels = doc.querySelectorAll("label");
-      for (const label of labels) {
-        if (label.getAttribute("for") === el.id) return clean(label.textContent);
+      for (let i = 0; i < labels.length; i++) {
+        if (labels[i].getAttribute("for") === el.id) return clean(labels[i].textContent);
       }
     }
     let parent = el.parentElement;
@@ -102,8 +114,10 @@
   function fieldsFor(doc, mode) {
     if (!doc || typeof doc.querySelectorAll !== "function") return [];
     const allowed = new Set(mode === "business" ? BUSINESS_ROLES : INFO_ROLES);
+    const nodes = doc.querySelectorAll("input, textarea, select");
     const out = [];
-    for (const el of doc.querySelectorAll("input, textarea, select")) {
+    for (let i = 0; i < nodes.length; i++) {
+      const el = nodes[i];
       if (el.closest && el.closest(".jev-card")) continue;
       const meta = readField(el);
       if (el.tagName === "INPUT" && BLOCKED_TYPES.includes(meta.type)) continue;
@@ -130,7 +144,10 @@
 
   function applyValue(el, value) {
     if (!el) return;
-    const text = String(value);
+    const text = String(value == null ? "" : value);
+    if (!text.trim()) return;
+    const meta = readField(el);
+    if (BLOCKED_TYPES.includes(meta.type) || /\b(password|passwd)\b/.test(fieldText(meta))) return;
     const proto = Object.getPrototypeOf(el);
     const desc = proto && Object.getOwnPropertyDescriptor(proto, "value");
     if (desc && typeof desc.set === "function") desc.set.call(el, text);

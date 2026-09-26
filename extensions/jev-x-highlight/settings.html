@@ -68,22 +68,9 @@
           </div>
           <button class="switch" type="button" role="switch" aria-checked="true" aria-label="Highlight posts" data-feature="highlight"></button>
           <div class="extra">
-            <div class="block">
-              <h3>Interested</h3>
-              <div class="composer">
-                <input id="interest-input" type="text" autocomplete="off" aria-label="Interested">
-                <button id="interest-add" class="add" type="button">Add</button>
-              </div>
-              <ul class="items" id="interest-list"></ul>
-            </div>
-            <div class="block">
-              <h3>Not interested</h3>
-              <div class="composer">
-                <input id="not-interest-input" type="text" autocomplete="off" aria-label="Not interested">
-                <button id="not-interest-add" class="add" type="button">Add</button>
-              </div>
-              <ul class="items" id="not-interest-list"></ul>
-            </div>
+            <p class="note">Pick broad topics. Interested posts stay. Not interested posts are the ones Hide posts can remove.</p>
+            <input id="topic-search" type="search" autocomplete="off" aria-label="Search topics" placeholder="Search topics">
+            <div id="topic-list" class="topics"></div>
           </div>
         </div>
       </section>
@@ -93,14 +80,21 @@
         <div class="feature">
           <div>
             <h2>Ads</h2>
-            <p>Remove a sponsored card, banner, or Promoted unit. If that would delete a real post, blur it instead.</p>
+            <p>A sponsored or promoted post is an ad. Remove that card. If removal would delete a real post, blur it completely.</p>
           </div>
           <button class="switch" type="button" role="switch" aria-checked="false" aria-label="Ads" data-feature="ads"></button>
         </div>
         <div class="feature">
           <div>
-            <h2>Focus and declutter</h2>
-            <p>Interest posts stay full size. Red posts collapse to a row with Show. Other posts fade. Trends, suggestions, Shorts, Reels, and extra rails hide. Nothing is deleted.</p>
+            <h2>Hide posts</h2>
+            <p>Delete not-interested posts, spam, and ads from the page as they appear. If a block cannot be removed, blur it. Mail is never deleted. Spam on social sites is removed even when this is off.</p>
+          </div>
+          <button class="switch" type="button" role="switch" aria-checked="false" aria-label="Hide posts" data-feature="hidePosts"></button>
+        </div>
+        <div class="feature">
+          <div>
+            <h2>Focus mode</h2>
+            <p>Interest posts stay full size. Everything else is blurred. With Hide posts on, everything except an interest is removed when the page allows it. Trends, Shorts, Reels, and extra rails hide.</p>
           </div>
           <button class="switch" type="button" role="switch" aria-checked="false" aria-label="Focus and declutter" data-feature="focusDeclutter"></button>
         </div>
@@ -335,6 +329,7 @@
   </main>
   <script src="lib/contract.js"></script>
   <script src="lib/runtime.js"></script>
+  <script src="lib/topics.js"></script>
   <script src="settings.js"></script>
 </body>
 </html>

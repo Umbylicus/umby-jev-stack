@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Jev extension stack",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Gold for interests. Red X for ads, spam, and phrases you do not want. Other tools stay off until you turn them on.",
   "permissions": ["storage", "tabs", "scripting"],
   "host_permissions": ["http://*/*", "https://*/*"],
@@ -44,8 +44,10 @@
       "js": [
         "lib/contract.js",
         "lib/runtime.js",
+        "lib/topics.js",
         "lib/match.js",
         "lib/url.js",
+        "lib/ask-client.js",
         "social/content.js",
         "mail/content.js",
         "page/draft.js",

@@ -1,13 +1,22 @@
 (function (root) {
   "use strict";
 
-  const WEEKDAY = "(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday|mon|tues|tue|wed|thurs|thur|thu|fri|sat|sun)";
-  const MONTH = "(?:january|february|march|april|june|july|august|september|october|november|december)";
-  const MONTH_DAY = "(?:jan|feb|mar|apr|may|jun|jul|aug|sept|sep|oct|nov|dec)\\.?\\s+\\d{1,2}(?:st|nd|rd|th)?";
+  const WEEKDAY_FULL = "monday|tuesday|wednesday|thursday|friday|saturday|sunday";
+  const WEEKDAY_SHORT = "mon|tues|tue|wed|thurs|thur|thu|fri|sat|sun";
+  const MONTH = "january|february|march|april|june|july|august|september|october|november|december";
+  const MONTH_NAME = "jan|feb|mar|apr|may|jun|jul|aug|sept|sep|oct|nov|dec";
+  // Short forms like "sat" and "sun" are also ordinary words, so they count only
+  // as a capitalized abbreviation or after a date preposition. "may" is the same.
   const DATE_RE = new RegExp(
-    "\\b(?:today|tomorrow|" + WEEKDAY + "|" + MONTH + ")\\b|\\b" + MONTH_DAY + "\\b|\\b\\d{1,2}[/-]\\d{1,2}(?:[/-]\\d{2,4})?\\b",
+    "\\b(?:today|tomorrow|" + WEEKDAY_FULL + "|" + MONTH + ")\\b" +
+    "|\\b(?:on|by|this|next|last|due)\\s+(?:" + WEEKDAY_SHORT + ")\\b" +
+    "|\\b(?:" + MONTH_NAME + ")\\.?\\s+\\d{1,2}(?:st|nd|rd|th)?\\b" +
+    "|\\b\\d{1,2}(?:st|nd|rd|th)?(?:\\s+of)?\\s+(?:" + MONTH_NAME + ")\\b" +
+    "|\\b\\d{1,2}[/-]\\d{1,2}(?:[/-]\\d{2,4})?\\b",
     "i"
   );
+  const SHORT_DATE_RE = /\b(?:Mon|Tues|Tue|Wed|Thurs|Thur|Thu|Fri|Sat|Sun)\b|\b(?:May|MAY)\b/;
+  const PRICE_RE = /\$\s*\d|\b\d[\d,]*(?:\.\d+)?\s*dollars?\b|\bUSD\s*\d|\b\d[\d,]*(?:\.\d+)?\s*USD\b|€\s*\d|£\s*\d/i;
   const COMPOSE_RE = /\b(compose|reply|replies|messages?|comments?|posts?|captions?)\b/i;
 
   let active = false;
@@ -31,13 +40,17 @@
     return out;
   }
 
+  function hasDate(sentence) {
+    return DATE_RE.test(sentence) || SHORT_DATE_RE.test(sentence);
+  }
+
   function findPromises(text) {
     const sentences = sentencesOf(text);
     const found = [];
     for (let i = 0; i < sentences.length; i++) {
       const sentence = sentences[i];
-      if (/\$\s*\d|\bdollars?\b/i.test(sentence)) found.push({ sentence: sentence, kind: "price" });
-      if (DATE_RE.test(sentence)) found.push({ sentence: sentence, kind: "date" });
+      if (PRICE_RE.test(sentence)) found.push({ sentence: sentence, kind: "price" });
+      if (hasDate(sentence)) found.push({ sentence: sentence, kind: "date" });
       if (/\brefund(?:ed|s|ing)?\b|\bmoney\s+back\b/i.test(sentence)) found.push({ sentence: sentence, kind: "refund" });
     }
     return found;
@@ -64,6 +77,7 @@
 
   function isCompose(el) {
     if (!el || el.nodeType !== 1) return false;
+    if (el.tagName === "BODY" || el.tagName === "HTML" || el.tagName === "DOCUMENT") return false;
     if (el.closest && el.closest(".jev-card")) return false;
     const type = String(el.getAttribute && el.getAttribute("type") || "").toLowerCase();
     const role = String(el.getAttribute && el.getAttribute("role") || "").toLowerCase();

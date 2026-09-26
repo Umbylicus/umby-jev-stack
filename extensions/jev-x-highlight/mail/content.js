@@ -29,15 +29,23 @@
     return Array.isArray(value) ? value : [];
   }
 
+  // Topic ids expand to labels and synonyms. A phrase that is not a topic id stays as stored.
+  function phrases(state, key) {
+    const raw = list(state, key);
+    const topics = root.JEVTopics;
+    if (topics && typeof topics.phrasesFor === "function") return topics.phrasesFor(raw);
+    return raw;
+  }
+
   function classifyMessage(message, state) {
     const subject = String((message && message.subject) || "");
     const snippet = String((message && message.snippet) || "");
     const sender = String((message && message.sender) || "");
     if (message && message.junk) return "bad";
     const about = subject + " " + snippet + " " + sender;
-    if (phraseHit(about, list(state, "notInterests"))) return "bad";
+    if (phraseHit(about, phrases(state, "notInterests"))) return "bad";
     if (looksLikeSpam(subject + " " + snippet)) return "bad";
-    if (phraseHit(about, list(state, "interests"))) return "gold";
+    if (phraseHit(about, phrases(state, "interests"))) return "gold";
     return "none";
   }
 
@@ -131,17 +139,70 @@
     };
   }
 
+  // Opened Gmail messages (.adn / .a3s), including tables inside the body, are not inbox rows.
+  function inOpenMessage(node) {
+    let current = node;
+    while (current && current.nodeType === 1) {
+      if (current.classList && (current.classList.contains("a3s") || current.classList.contains("adn"))) return true;
+      current = current.parentElement;
+    }
+    return false;
+  }
+
+  function isOpenMessageRow(row) {
+    if (!row || inOpenMessage(row)) return true;
+    return typeof row.querySelector === "function" && !!row.querySelector(".a3s, .adn");
+  }
+
+  function gmailRows(document) {
+    const rows = [];
+    const seen = new Set();
+    function add(row) {
+      if (!row || seen.has(row) || isOpenMessageRow(row)) return;
+      seen.add(row);
+      rows.push(row);
+    }
+    for (const row of selectAll(document, "tr.zA")) add(row);
+    for (const main of selectAll(document, 'div[role="main"]')) {
+      for (const row of selectAll(main, 'tr[role="row"]')) add(row);
+    }
+    return rows;
+  }
+
+  function pickedText(row, selector) {
+    for (const el of selectAll(row, selector)) {
+      if (inOpenMessage(el)) continue;
+      const text = clean(el.textContent);
+      if (text) return { el, subject: text };
+    }
+    return null;
+  }
+
+  function gmailSubject(row) {
+    const bog = pickedText(row, ".bog");
+    if (bog) return bog;
+    const link = pickedText(row, '[role="link"]');
+    if (link) return link;
+    const thread = pickedText(row, "span[data-thread-id]");
+    if (thread) return thread;
+    for (const line of textLines(row)) {
+      if (inOpenMessage(line.el)) continue;
+      return { el: line.el, subject: line.text };
+    }
+    return { el: null, subject: "" };
+  }
+
   function findGmail(document, place) {
     const out = [];
-    for (const row of selectAll(document, "tr.zA")) {
-      const subjectEl = row.querySelector(".bog");
+    for (const row of gmailRows(document)) {
+      const subject = gmailSubject(row);
       const senderEl = row.querySelector(".yP") || row.querySelector(".zF") || row.querySelector("[email]");
-      const subject = clean(subjectEl && subjectEl.textContent);
       const sender = clean(senderEl && senderEl.textContent) || attr(senderEl, "name") || attr(senderEl, "email");
-      const snippet = cleanSnippet(row.querySelector(".y2") && row.querySelector(".y2").textContent);
+      const snippetEl = row.querySelector(".y2");
+      const snippet = cleanSnippet(snippetEl && snippetEl.textContent);
       const junk = rowJunk(row, place);
-      const id = attr(row, "data-legacy-message-id") || attr(row, "data-message-id") || subject;
-      out.push(record(row, subjectEl, subject, snippet, sender, junk, id));
+      const id = attr(row, "data-legacy-message-id") || attr(row, "data-message-id") || subject.subject;
+      out.push(record(row, subject.el, subject.subject, snippet, sender, junk, id));
     }
     return out;
   }
@@ -262,6 +323,20 @@
     if (!site) return;
     for (const message of findMessages(document, site, hostname, locationText(document))) {
       paint(message, classifyMessage(message, state));
+      const ask = root.JEVAsk;
+      if (!ask || typeof ask.item !== "function" || !state.apiKey || !message.id) continue;
+      const allow = (state.interests || []).join(", ") || "none";
+      const block = (state.notInterests || []).join(", ") || "none";
+      ask.item("mail", message.id, [message.subject, message.snippet, message.sender].join("\n"), [
+        { key: "is_spam", instructions: "Is this email junk or spam? Do not treat a normal sender name as spam.", yes: "It is junk or spam.", no: "It is ordinary mail." },
+        { key: "matches_allow", instructions: "Does this email match any of these interest topics: " + allow + "?", yes: "It matches an interest.", no: "It does not." },
+        { key: "matches_block", instructions: "Does this email match any of these blocked topics: " + block + "?", yes: "It matches a blocked topic.", no: "It does not." }
+      ]).then(function (res) {
+        const answers = (res && res.answers) || {};
+        if (!message.el || !message.el.parentNode) return;
+        if (answers.is_spam || answers.matches_block) paint(message, "bad");
+        else if (answers.matches_allow) paint(message, "gold");
+      }).catch(function () {});
     }
   }
 

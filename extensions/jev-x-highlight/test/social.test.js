@@ -122,48 +122,147 @@ test("a sponsored unit that wraps a real post is blurred instead of removed", ()
   assert.equal(doc.querySelector("span").parentNode, unit);
 });
 
-test("focus collapses bad posts, fades plain posts, leaves gold full size, and Show expands", () => {
+test("a facebook feed child with Sponsored outside the article is an ad", () => {
+  const { doc, el } = dom();
+  const article = el("div", { role: "article" },
+    el("h3", {}, el("a", { href: "/ada" }, "Ada")),
+    el("div", { text: "Hello friends" })
+  );
+  const marker = el("div", { "aria-label": "Sponsored" });
+  const unit = el("div", { id: "unit" }, marker, article);
+  const feed = el("div", { role: "feed" }, unit);
+  const pagelet = el("div", { "data-pagelet": "FeedUnit_9" },
+    el("span", { title: "Sponsored" }),
+    el("div", { text: "Standalone pagelet copy" })
+  );
+  doc.body.append(feed, pagelet);
+  const posts = social.findPosts(doc, "facebook");
+  assert.equal(posts.some((post) => post.el === unit && post.ad === true), true);
+  assert.equal(posts.some((post) => post.el === article && post.ad === true), false);
+  assert.equal(posts.some((post) => post.el === pagelet && post.ad === true), true);
+  const ads = social.findAds(doc, "facebook");
+  assert.equal(ads.some((ad) => ad.el === unit), true);
+  assert.equal(ads.some((ad) => ad.el === feed), false);
+  assert.equal(ads.some((ad) => ad.el === pagelet && ad.action === "remove"), true);
+  social.apply(doc, baseState({ features: { ads: true } }), new Date(), "www.facebook.com");
+  assert.equal(unit.parentNode, feed);
+  assert.equal(article.parentNode, unit);
+  assert.equal(unit.classList.contains("jev-blur"), true);
+  assert.equal(article.classList.contains("jev-blur"), false);
+  assert.equal(pagelet.parentNode, null);
+  assert.equal(feed.parentNode, doc.body);
+});
+
+test("facebook letter-span textContent Sponsored is an ad", () => {
+  const { doc, el } = dom();
+  const letters = ["S", "p", "o", "n", "s", "o", "r", "e", "d"].map((letter) => el("span", { text: letter }));
+  const label = el("div", { id: "label" }, ...letters);
+  assert.equal(label.textContent, "Sponsored");
+  const article = el("div", { role: "article" },
+    el("h3", {}, el("a", { href: "/shop" }, "Shop")),
+    label,
+    el("div", { text: "Limited offer" })
+  );
+  const hidden = el("div", { role: "article", id: "zw" },
+    el("h3", {}, el("a", { href: "/zw" }, "Zed")),
+    el("span", { text: "S\u200bpon\u200csored" }),
+    el("div", { text: "Zero width label" })
+  );
+  const talk = el("div", { role: "article", id: "talk" },
+    el("h3", {}, el("a", { href: "/sam" }, "Sam")),
+    el("div", { text: "I wrote a normal post about sponsored products and how the word shows up in conversation without this being an advertisement." })
+  );
+  doc.body.append(article, hidden, talk);
+  const posts = social.findPosts(doc, "facebook");
+  assert.equal(posts.some((post) => post.el === article && post.ad === true), true);
+  assert.equal(posts.some((post) => post.el === hidden && post.ad === true), true);
+  assert.equal(posts.some((post) => post.el === talk && post.ad === true), false);
+  const decoy = el("div", { id: "decoy" },
+    el("span", { text: "S" }),
+    el("span", { "aria-hidden": "true", text: "xx" }),
+    el("span", { text: "ponsored" })
+  );
+  Object.defineProperty(decoy, "innerText", { configurable: true, get() { return "Sponsored"; } });
+  assert.equal(decoy.textContent, "Sxxponsored");
+  const padded = el("div", { role: "article", id: "padded" },
+    el("h3", {}, el("a", { href: "/pad" }, "Pat")),
+    decoy,
+    el("div", { text: "Shop now" })
+  );
+  doc.body.append(padded);
+  assert.equal(social.findPosts(doc, "facebook").some((post) => post.el === padded && post.ad === true), true);
+  social.apply(doc, baseState({ features: { ads: true } }), new Date(), "www.facebook.com");
+  assert.equal(article.parentNode, null);
+  assert.equal(hidden.parentNode, null);
+  assert.equal(padded.parentNode, null);
+  assert.equal(talk.parentNode, doc.body);
+});
+
+test("an ad article that contains a menu is removed when ads are on", () => {
+  const { doc, el } = dom();
+  const menu = el("div", { role: "menu" },
+    el("div", { role: "menuitem", text: "Hide ad" })
+  );
+  const article = el("div", { role: "article" },
+    el("span", { text: "Sponsored" }),
+    menu,
+    el("div", { text: "Buy the thing" })
+  );
+  const composer = el("div", {
+    role: "textbox",
+    "aria-label": "What's on your mind?",
+    text: "What's on your mind?"
+  });
+  const nav = el("nav", { id: "topnav" }, el("a", { href: "/home", text: "Home" }));
+  const drawer = el("div", { id: "drawer", "data-testid": "DMDrawer", "aria-label": "Messages" });
+  const shellComposer = el("div", { role: "textbox", "aria-label": "Create a post", text: "Create a post" });
+  const shell = el("div", { id: "shell" },
+    el("span", { text: "Sponsored" }),
+    shellComposer
+  );
+  doc.body.append(nav, composer, drawer, shell, article);
+  assert.equal(social.isProtected(article), false);
+  assert.equal(social.isProtected(menu), true);
+  assert.equal(social.isProtected(composer), true);
+  assert.equal(social.isProtected(nav), true);
+  assert.equal(social.isProtected(drawer), true);
+  social.apply(doc, baseState({ features: { ads: true } }), new Date(), "www.facebook.com");
+  assert.equal(article.parentNode, null);
+  assert.equal(composer.parentNode, doc.body);
+  assert.equal(nav.parentNode, doc.body);
+  assert.equal(drawer.parentNode, doc.body);
+  assert.equal(shellComposer.parentNode, shell);
+  assert.equal(shell.parentNode, doc.body);
+  assert.equal(shell.classList.contains("jev-blur"), true);
+  assert.equal(nav.classList.contains("jev-blur"), false);
+  assert.equal(composer.classList.contains("jev-blur"), false);
+});
+
+test("focus blurs everything except an interest and does not delete it", () => {
   const { doc, el } = dom();
   const gold = tweet(el, "101", "Ada", "fencing season");
   const bad = tweet(el, "202", "Bea", "soccer highlights");
   const plain = tweet(el, "303", "Cam", "weather today");
   doc.body.append(gold, bad, plain);
-  const on = baseState({
+  social.apply(doc, baseState({
     interests: ["fencing"],
     notInterests: ["soccer"],
     features: { focusDeclutter: true, highlight: true }
-  });
-  social.apply(doc, on, new Date(), "x.com");
-  assert.equal(gold.classList.contains("jev-collapsed"), false);
-  assert.equal(gold.classList.contains("jev-faded"), false);
+  }), new Date(), "x.com");
+  assert.equal(gold.classList.contains("jev-blur"), false);
   assert.equal(gold.classList.contains("jev-gold"), true);
-  assert.equal(bad.classList.contains("jev-collapsed"), true);
-  assert.equal(plain.classList.contains("jev-faded"), true);
+  assert.equal(bad.classList.contains("jev-blur"), true);
+  assert.equal(plain.classList.contains("jev-blur"), true);
   assert.equal(bad.parentNode, doc.body);
-  const show = bad.querySelector(".jev-show");
-  assert.equal(show.textContent, "Show");
-  let prevented = false;
-  let stopped = false;
-  show.dispatchEvent({
-    type: "click",
-    preventDefault() { prevented = true; },
-    stopPropagation() { stopped = true; }
-  });
-  assert.equal(prevented, true);
-  assert.equal(stopped, true);
-  assert.equal(bad.classList.contains("jev-collapsed"), false);
+  assert.equal(plain.parentNode, doc.body);
   social.apply(doc, baseState({
     interests: ["fencing"],
     notInterests: ["soccer"],
     features: { focusDeclutter: false, highlight: true }
   }), new Date(), "x.com");
-  assert.equal(bad.classList.contains("jev-collapsed"), false);
-  assert.equal(plain.classList.contains("jev-faded"), false);
-  assert.equal(gold.classList.contains("jev-collapsed"), false);
-  assert.equal(doc.querySelector(".jev-show"), null);
+  assert.equal(bad.classList.contains("jev-blur"), false);
+  assert.equal(plain.classList.contains("jev-blur"), false);
   assert.equal(gold.parentNode, doc.body);
-  assert.equal(bad.parentNode, doc.body);
-  assert.equal(plain.parentNode, doc.body);
 });
 
 test("site switch off clears marks and leaves the page otherwise in place", () => {
@@ -306,6 +405,13 @@ test("other social posts expose text, author, and the platform ad label", () => 
   assert.equal(facebookPosts[0].el, facebook);
   assert.equal(facebookPosts[0].author, "Ada Lovelace");
   assert.equal(facebookPosts[0].ad, true);
+  const labeled = el("div", { role: "article" },
+    el("span", { "aria-label": "Sponsored" }),
+    el("div", { text: "Shop the sale" })
+  );
+  doc.body.append(labeled);
+  const labeledPosts = social.findPosts(doc, "facebook");
+  assert.equal(labeledPosts.some((post) => post.el === labeled && post.ad), true);
   assert.match(facebookPosts[0].text, /water heater/);
 
   const instagramDoc = createDocument();

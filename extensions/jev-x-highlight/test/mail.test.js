@@ -6,6 +6,7 @@ const path = require("node:path");
 
 require(path.join(__dirname, "..", "lib", "contract.js"));
 const runtime = require(path.join(__dirname, "..", "lib", "runtime.js"));
+const fs = require("fs");
 const { createDocument, h } = require(path.join(__dirname, "minidom.js"));
 
 globalThis.JEVMatch = {
@@ -22,6 +23,7 @@ globalThis.JEVMatch = {
   }
 };
 
+require(path.join(__dirname, "..", "lib", "topics.js"));
 const mail = require(path.join(__dirname, "..", "mail", "content.js"));
 
 const LATE = new Date(2026, 8, 20, 23, 30, 0);
@@ -375,6 +377,16 @@ test("findMessages reads gmail rows and outlook options", () => {
   nameDoc.body.append(nameRow);
   assert.equal(mail.findMessages(nameDoc, "gmail", "mail.google.com", "#inbox")[0].junk, false);
 
+  const junko = outlookMessage({
+    sender: "Junko",
+    subject: "Hello",
+    aria: "Junko, Hello, See you then"
+  });
+  const junkoFound = mail.findMessages(junko.doc, "outlook", "outlook.office.com")[0];
+  assert.equal(junkoFound.sender, "Junko");
+  assert.equal(junkoFound.junk, false);
+  assert.equal(junkoFound.el.getAttribute("role"), "option");
+
   const empty = createDocument();
   assert.deepEqual(mail.findMessages(empty, "gmail"), []);
   assert.deepEqual(mail.findMessages(empty, "outlook"), []);
@@ -418,4 +430,145 @@ test("outlook interest is gold without removing the option", () => {
   assert.equal(built.subjectEl.classList.contains("jev-subject-strike"), false);
   assert.equal(built.doc.body.contains(built.row), true);
   assert.equal(built.doc.body.children.length, before);
+});
+
+test("topic id ai marks artificial intelligence gold", () => {
+  const built = gmailMessage({
+    subject: "quarterly artificial intelligence plan",
+    snippet: "notes",
+    sender: "Ada"
+  });
+  const state = mailState({ interests: ["ai"] });
+  assert.equal(typeof globalThis.JEVTopics.phrasesFor, "function");
+  assert.equal(mail.classifyMessage({
+    subject: "quarterly artificial intelligence plan",
+    snippet: "notes",
+    sender: "Ada",
+    junk: false
+  }, state), "gold");
+  const before = built.doc.body.children.length;
+  mail.apply(built.doc, state, LATE, "mail.google.com");
+  assert.equal(built.row.classList.contains("jev-gold"), true);
+  assert.equal(built.row.classList.contains("jev-bad"), false);
+  assert.equal(built.subjectEl.classList.contains("jev-subject-strike"), false);
+  assert.equal(built.doc.body.contains(built.row), true);
+  assert.equal(built.doc.body.children.length, before);
+});
+
+test("topic id personal-finance marks credit card mail bad", () => {
+  const built = gmailMessage({ subject: "credit card payment", snippet: "due Friday", sender: "Ada" });
+  const state = mailState({ interests: ["roofing"], notInterests: ["personal-finance"] });
+  assert.equal(mail.classifyMessage({
+    subject: "credit card payment",
+    snippet: "due Friday",
+    sender: "Ada",
+    junk: false
+  }, state), "bad");
+  mail.apply(built.doc, state, LATE, "mail.google.com");
+  assert.equal(built.row.classList.contains("jev-bad"), true);
+  assert.equal(built.row.classList.contains("jev-gold"), false);
+  assert.equal(built.subjectEl.classList.contains("jev-subject-strike"), true);
+  assert.equal(built.senderEl.classList.contains("jev-subject-strike"), false);
+});
+
+test("main-table row without bog yields the subject from role=link", () => {
+  const doc = createDocument();
+  doc.location = {
+    hostname: "mail.google.com",
+    hash: "#inbox",
+    href: "https://mail.google.com/mail/u/0/#inbox",
+    pathname: "/mail/u/0/"
+  };
+  const main = h("div", { role: "main", ownerDocument: doc });
+  const row = h("tr", { role: "row", ownerDocument: doc });
+  const senderEl = h("span", { class: "yP", email: "ada@example.com", ownerDocument: doc, text: "Ada Lovelace" });
+  const subjectEl = h("td", { role: "link", ownerDocument: doc, text: "roofing estimate" });
+  const snippetEl = h("span", { class: "y2", ownerDocument: doc, text: " - next week" });
+  row.append(senderEl, subjectEl, snippetEl);
+  main.append(h("table", { ownerDocument: doc }).append(row));
+  doc.body.append(main);
+  assert.equal(row.querySelector(".bog"), null);
+  const found = mail.findMessages(doc, "gmail", "mail.google.com");
+  assert.equal(found.length, 1);
+  assert.equal(found[0].el, row);
+  assert.equal(found[0].subjectEl, subjectEl);
+  assert.equal(found[0].subject, "roofing estimate");
+  assert.equal(found[0].sender, "Ada Lovelace");
+  assert.equal(found[0].snippet, "next week");
+  const before = doc.body.children.length;
+  mail.apply(doc, mailState(), LATE, "mail.google.com");
+  assert.equal(row.classList.contains("jev-gold"), true);
+  assert.equal(subjectEl.classList.contains("jev-subject-strike"), false);
+  assert.equal(doc.body.contains(row), true);
+  assert.equal(doc.body.children.length, before);
+
+  const threadDoc = createDocument();
+  const threadMain = h("div", { role: "main", ownerDocument: threadDoc });
+  const threadRow = h("tr", { role: "row", ownerDocument: threadDoc });
+  const threadEl = h("span", { "data-thread-id": "thread-1", ownerDocument: threadDoc, text: "thread subject" });
+  threadRow.append(h("span", { class: "zF", ownerDocument: threadDoc, text: "Grace" }), threadEl);
+  const lineRow = h("tr", { role: "row", ownerDocument: threadDoc });
+  const lineEl = h("div", { ownerDocument: threadDoc, text: "plain subject line" });
+  lineRow.append(h("span", { ownerDocument: threadDoc, text: "9:04 AM" }), lineEl);
+  threadMain.append(threadRow, lineRow);
+  threadDoc.body.append(threadMain);
+  const threads = mail.findMessages(threadDoc, "gmail");
+  assert.equal(threads.length, 2);
+  assert.equal(threads[0].subject, "thread subject");
+  assert.equal(threads[0].subjectEl, threadEl);
+  assert.equal(threads[0].sender, "Grace");
+  assert.equal(threads[1].subject, "plain subject line");
+  assert.equal(threads[1].subjectEl, lineEl);
+});
+
+test("open gmail message body is not a list row", () => {
+  const doc = createDocument();
+  doc.location = {
+    hostname: "mail.google.com",
+    hash: "#inbox/abc",
+    href: "https://mail.google.com/mail/u/0/#inbox/abc",
+    pathname: "/mail/u/0/"
+  };
+  const main = h("div", { role: "main", ownerDocument: doc });
+  const opened = h("div", { class: "adn", ownerDocument: doc });
+  const body = h("div", { class: "a3s", ownerDocument: doc });
+  const inner = h("tr", { role: "row", ownerDocument: doc });
+  inner.append(h("span", { role: "link", ownerDocument: doc, text: "quarterly artificial intelligence plan" }));
+  const legacy = h("tr", { class: "zA", ownerDocument: doc });
+  legacy.append(h("span", { class: "bog", ownerDocument: doc, text: "quarterly artificial intelligence plan" }));
+  body.append(inner, legacy);
+  opened.append(body);
+  const list = h("tr", { role: "row", ownerDocument: doc });
+  const listSubject = h("span", { role: "link", ownerDocument: doc, text: "Lunch Tuesday" });
+  list.append(h("span", { class: "yP", ownerDocument: doc, text: "Pat" }), listSubject);
+  main.append(opened, h("table", { ownerDocument: doc }).append(list));
+  doc.body.append(main);
+  const before = doc.body.children.length;
+  const found = mail.findMessages(doc, "gmail", "mail.google.com");
+  assert.equal(found.length, 1);
+  assert.equal(found[0].el, list);
+  assert.equal(found[0].subject, "Lunch Tuesday");
+  mail.apply(doc, mailState({ interests: ["ai"] }), LATE, "mail.google.com");
+  assert.equal(body.classList.contains("jev-gold"), false);
+  assert.equal(body.classList.contains("jev-bad"), false);
+  assert.equal(body.classList.contains("jev-subject-strike"), false);
+  assert.equal(inner.classList.contains("jev-gold"), false);
+  assert.equal(inner.classList.contains("jev-bad"), false);
+  assert.equal(legacy.classList.contains("jev-gold"), false);
+  assert.equal(opened.classList.contains("jev-gold"), false);
+  assert.equal(list.classList.contains("jev-gold"), false);
+  assert.equal(doc.body.contains(inner), true);
+  assert.equal(doc.body.contains(legacy), true);
+  assert.equal(doc.body.contains(list), true);
+  assert.equal(doc.body.children.length, before);
+});
+
+test("collapsed gmail rows get a cell background and social classes stay", () => {
+  const css = fs.readFileSync(path.join(__dirname, "..", "highlight.css"), "utf8");
+  assert.match(css, /tr\.jev-gold\s+td\s*\{[^}]*background/);
+  assert.match(css, /tr\.jev-bad\s+td\s*\{[^}]*background/);
+  assert.match(css, /\.jev-subject-strike\s*\{[^}]*line-through/);
+  assert.match(css, /\.jev-gold\s*\{[^}]*outline/);
+  assert.match(css, /\.jev-blur\s*\{/);
+  assert.match(css, /\.jev-x\s*\{/);
 });

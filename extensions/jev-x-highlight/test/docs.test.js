@@ -254,6 +254,21 @@ test("classifyField maps contact roles and rejects a password", () => {
   assert.equal(fill.classifyField({
     type: "text", name: "cc-number", id: "cc", autocomplete: "cc-number", label: "Card number", placeholder: ""
   }), "");
+  assert.equal(fill.classifyField({
+    type: "file", name: "email", id: "resume", autocomplete: "email", label: "Email", placeholder: ""
+  }), "");
+  assert.equal(fill.classifyField({
+    type: "text", name: "firstName", id: "firstName", autocomplete: "", label: "", placeholder: ""
+  }), "name");
+  assert.equal(fill.classifyField({
+    type: "text", name: "companyName", id: "companyName", autocomplete: "", label: "", placeholder: ""
+  }), "businessName");
+  assert.equal(fill.classifyField({
+    type: "text", name: "title", id: "title", autocomplete: "organization-title", label: "Job title", placeholder: ""
+  }), "");
+  assert.equal(fill.classifyField({
+    type: "text", name: "city", id: "city", autocomplete: "address-level2", label: "City", placeholder: ""
+  }), "");
 });
 
 test("Fill my info lists the email field and writes it only after the click", () => {
@@ -330,6 +345,156 @@ test("fillBusiness off does not write the company name even if fillInfo is on", 
   rowByLabel(business, "Company name").querySelector("button").click();
   assert.equal(company.value, "Northwind LLC");
   assert.equal(email.value, "user@example.com");
+});
+
+test("terms card ignores a privacy mention and keeps real clauses", () => {
+  const found = globalThis.JEVTerms.extract([
+    "You may cancel your subscription within 30 days of purchase.",
+    "You have 14 days to cancel.",
+    "We may sell personal information to partners.",
+    "Personal items are sold to customers in our store.",
+    "You waive your right to a trial by jury.",
+    "A random warranty covers manufacturing defects for one year."
+  ].join(" "));
+  assert.match(found.cancellation.join(" "), /cancel your subscription within 30 days/i);
+  assert.match(found.cancellation.join(" "), /14 days to cancel/i);
+  assert.match(found.dataSold.join(" "), /sell personal information/i);
+  assert.doesNotMatch(found.dataSold.join(" "), /personal items/i);
+  assert.match(found.arbitration.join(" "), /trial by jury/i);
+  for (const key of ["autoRenew", "cancellation", "arbitration", "dataSold"]) {
+    for (const line of found[key]) assert.doesNotMatch(line, /warranty/i);
+  }
+  assert.equal(globalThis.JEVTerms.isTermsPage({ href: "https://example.com/privacypolicy", title: "", heading: "" }), true);
+  assert.equal(globalThis.JEVTerms.isTermsPage({ href: "https://example.com/termsofservice", title: "", heading: "" }), true);
+  assert.equal(globalThis.JEVTerms.isTermsPage({ href: "https://shop.example/about", title: "Privacy policy", heading: "" }), true);
+  assert.equal(globalThis.JEVTerms.isTermsPage({
+    href: "https://shop.example/about?topic=privacy",
+    title: "We care about your privacy",
+    heading: "Hello"
+  }), false);
+});
+
+test("terms text skips extension cards on a node list without indexOf", () => {
+  const document = mount("https://example.com/privacy", "Privacy policy", "Privacy policy");
+  const noise = document.createElement("aside");
+  noise.className = "jev-card";
+  noise.textContent = "A random warranty covers manufacturing defects for one year.";
+  document.body.append(noise, document.createTextNode(" The plan will auto-renew unless you stop it."));
+  const real = document.querySelectorAll.bind(document);
+  document.querySelectorAll = (selector) => {
+    const found = real(selector);
+    const nodes = { length: found.length };
+    for (let i = 0; i < found.length; i++) nodes[i] = found[i];
+    return nodes;
+  };
+  assert.equal(typeof document.querySelectorAll(".jev-card").indexOf, "undefined");
+  globalThis.JEVTerms.sync(stateWith({ termsCard: true }));
+  const card = termsCard(document);
+  assert.ok(card);
+  assert.match(card.textContent, /auto-renew/i);
+  assert.doesNotMatch(card.textContent, /warranty/i);
+});
+
+test("formatting and report cadence are not proposal changes", () => {
+  const before = [
+    "Fees",
+    "The total price is $1,000.",
+    "",
+    "Term",
+    "The initial term is 12-month.",
+    "",
+    "Liability",
+    "Total liability shall not exceed $1,000.",
+    "",
+    "Scope",
+    "The vendor shall provide weekly reports at a price of $500.",
+    "",
+    "Risk",
+    "The vendor shall indemnify the client."
+  ].join("\n");
+  const after = [
+    "Fees",
+    "The total price is $1000.",
+    "",
+    "Term",
+    "The initial term is 12 months.",
+    "",
+    "Liability",
+    "Total liability will not exceed $1000.",
+    "",
+    "Scope",
+    "The vendor will provide daily reports at a price of $500.",
+    "",
+    "Risk",
+    "The vendor will indemnify the client."
+  ].join("\n");
+  assert.deepEqual(proposal.diffProposals(before, after), []);
+  assert.deepEqual(proposal.diffProposals(
+    "Liability\nTotal liability shall not exceed €1,000.",
+    "Liability\nTotal liability will not exceed €1000."
+  ), []);
+  const currency = proposal.diffProposals(
+    "Liability\nTotal liability shall not exceed €1,000.",
+    "Liability\nTotal liability shall not exceed $1000."
+  );
+  assert.deepEqual(currency.map((diff) => diff.change), ["liability"]);
+  const billed = proposal.diffProposals(
+    "Fees\nThe total price is $500 per year.\n\nTerm\nServices are billed annually.\n\nLiability\nTotal liability shall not exceed $1,000.",
+    "Fees\nThe total price is $500 per month.\n\nTerm\nServices are billed monthly.\n\nLiability\nTotal liability shall not exceed $2,000."
+  );
+  assert.deepEqual(billed.map((diff) => diff.heading), ["Fees", "Term", "Liability"]);
+  assert.deepEqual(billed.map((diff) => diff.change), ["term", "term", "liability"]);
+});
+
+test("fieldsFor reads inputs from a node list without indexOf", () => {
+  const document = mount("https://example.com/apply", "Apply", "Apply");
+  const email = addField(document, "email", "email", "email", "Email");
+  const real = document.querySelectorAll.bind(document);
+  document.querySelectorAll = (selector) => {
+    const found = real(selector);
+    const nodes = { length: found.length };
+    for (let i = 0; i < found.length; i++) nodes[i] = found[i];
+    return nodes;
+  };
+  assert.equal(typeof document.querySelectorAll("input").indexOf, "undefined");
+  const fields = globalThis.JEVFill.fieldsFor(document, "info");
+  assert.equal(fields.length, 1);
+  assert.equal(fields[0].el, email);
+  assert.equal(fields[0].role, "email");
+});
+
+test("camelCase company and blocked inputs stay put until the matching fill", () => {
+  const document = mount("https://example.com/apply", "Apply", "Apply");
+  const first = document.createElement("input");
+  first.setAttribute("id", "firstName");
+  first.setAttribute("type", "text");
+  first.setAttribute("name", "firstName");
+  first.value = "Old Name";
+  const company = document.createElement("input");
+  company.setAttribute("id", "companyName");
+  company.setAttribute("type", "text");
+  company.setAttribute("name", "companyName");
+  company.value = "Old Co";
+  const file = addField(document, "resume", "file", "resume", "Resume");
+  file.value = "secret.pdf";
+  document.body.append(first, company);
+  const state = stateWith({ fillInfo: true, fillBusiness: true }, {
+    profile: { name: "Ada Lovelace", email: "user@example.com", phone: "", address: "" },
+    business: { name: "Northwind LLC", phone: "", address: "" }
+  });
+  globalThis.JEVFill.sync(state);
+  assert.equal(first.value, "Old Name");
+  assert.equal(company.value, "Old Co");
+  assert.equal(file.value, "secret.pdf");
+  const info = document.getElementById("jev-fill-info");
+  const business = document.getElementById("jev-fill-business");
+  rowByLabel(info, "Name").querySelector("button").click();
+  assert.equal(first.value, "Ada Lovelace");
+  assert.equal(company.value, "Old Co");
+  for (const button of business.querySelectorAll("button")) button.click();
+  assert.equal(company.value, "Northwind LLC");
+  assert.equal(first.value, "Ada Lovelace");
+  assert.equal(file.value, "secret.pdf");
 });
 
 test("empty profile click does not replace an existing field value", () => {
